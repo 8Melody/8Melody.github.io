@@ -4,7 +4,7 @@ title: "Centos配置Jenkins实现Android自动打包并上传到蒲公英"
 subtitle: "本文记录Android Jenkins实现自动化打包"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Jenkins
 ---

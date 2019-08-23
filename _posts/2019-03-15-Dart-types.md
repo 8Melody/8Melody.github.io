@@ -4,7 +4,7 @@ title: "Dart学习第一章"
 subtitle: "Dart开篇"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Dart
 ---

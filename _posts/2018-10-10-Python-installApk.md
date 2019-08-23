@@ -4,7 +4,7 @@ title: "使用Python实现apk自动安装"
 subtitle: "Python install APK"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Python
 ---

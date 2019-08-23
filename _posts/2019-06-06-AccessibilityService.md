@@ -4,7 +4,7 @@ title: "使用AccessibilityService实现微信自动发送消息"
 subtitle: "记录AccessibilityService的简易使用"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Android
   - AccessibilityService

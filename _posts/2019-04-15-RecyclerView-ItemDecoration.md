@@ -4,7 +4,7 @@ title: "RecyclerView ItemDecoration使用小记"
 subtitle: "记录RecyclerView ItemDecoration的用法"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Android
   - ItemDecoration

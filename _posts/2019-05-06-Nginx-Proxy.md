@@ -4,7 +4,7 @@ title: "Nginx反向代理处理跨域"
 subtitle: "Nginx proxy_pass"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Nginx
 ---

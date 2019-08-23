@@ -4,7 +4,7 @@ title: "Dart学习第二章"
 subtitle: "Dart Functions"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Dart
 ---

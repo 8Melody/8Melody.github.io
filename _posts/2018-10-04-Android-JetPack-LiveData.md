@@ -4,7 +4,7 @@ title: "Jetpack系列之LiveData"
 subtitle: "本文记录Jetpack之LiveData"
 author: "XYH"
 header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-bg-css: "linear-gradient(to right, #404040, #687a86);"
 tags:
   - Jetpack
   - LiveData  
