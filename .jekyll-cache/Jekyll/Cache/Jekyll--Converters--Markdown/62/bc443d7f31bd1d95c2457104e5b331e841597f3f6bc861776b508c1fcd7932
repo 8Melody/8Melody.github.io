@@ -1,0 +1,953 @@
+I"�<blockquote>
+  <p>记录RecyclerView ItemDecoration的使用方法。</p>
+</blockquote>
+
+<h1 id="recyclerview-itemdecoration">RecyclerView ItemDecoration。</h1>
+
+<blockquote>
+  <p>本文记录如何使用ItemDecoration实现RecyclerView分割线跟如何使用ItemDecoration实现stickyHeader，俗称粘性Header。</p>
+</blockquote>
+
+<h2 id="前言">前言</h2>
+
+<p>以前使用<code class="highlighter-rouge">ListView</code>的时候设置分割线是一件非常简单的事情，后来Google推出了<code class="highlighter-rouge">RecyclerView</code>，但是<code class="highlighter-rouge">RecyclerView</code>并没有直接设置分割线的API，不过好在<code class="highlighter-rouge">RecyclerView</code>提供的接口够多，其中<code class="highlighter-rouge">ItemDecoration</code>接口可以用于干预<code class="highlighter-rouge">RecyclerView</code>内部itemView绘制的api。</p>
+
+<h2 id="介绍itemdecoration">介绍ItemDecoration</h2>
+
+<p><code class="highlighter-rouge">ItemDecoration</code>需要实现的方法只有3个：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td><td class="rouge-code"><pre>  <span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ItemDecoration</span> <span class="o">{</span>
+        <span class="cm">/**
+         * 这个方法会在RecyclerView绘制itemView之前调用，并且绘制的内容会在itemView下方。
+         * @param c Canvas to draw into
+         * @param parent RecyclerView this ItemDecoration is drawing into
+         * @param state The current state of RecyclerView
+         */</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDraw</span><span class="o">(</span><span class="nc">Canvas</span> <span class="n">c</span><span class="o">,</span> <span class="nc">RecyclerView</span> <span class="n">parent</span><span class="o">,</span> <span class="nc">State</span> <span class="n">state</span><span class="o">)</span> <span class="o">{</span>
+           
+        <span class="o">}</span>
+        <span class="cm">/**
+         * 这个方法会在RecyclerView绘制itemView之后调用，并且绘制的内容会覆盖在itemView上。
+         * @param c Canvas to draw into
+         * @param parent RecyclerView this ItemDecoration is drawing into
+         * @param state The current state of RecyclerView.
+         */</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDrawOver</span><span class="o">(</span><span class="nc">Canvas</span> <span class="n">c</span><span class="o">,</span> <span class="nc">RecyclerView</span> <span class="n">parent</span><span class="o">,</span> <span class="nc">State</span> <span class="n">state</span><span class="o">)</span> <span class="o">{</span>
+           
+        <span class="o">}</span>
+        <span class="cm">/**
+         * 获取每个itemView的偏移量
+         * @param outRect Rect to receive the output.
+         * @param view    The child view to decorate
+         * @param parent  RecyclerView this ItemDecoration is decorating
+         * @param state   The current state of RecyclerView.
+         */</span>        
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">getItemOffsets</span><span class="o">(</span><span class="nc">Rect</span> <span class="n">outRect</span><span class="o">,</span> <span class="nc">View</span> <span class="n">view</span><span class="o">,</span> <span class="nc">RecyclerView</span> <span class="n">parent</span><span class="o">,</span> <span class="nc">State</span> <span class="n">state</span><span class="o">)</span> <span class="o">{</span>
+          
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这些方法在<code class="highlighter-rouge">RecyclerView</code>中被调用的位置：</p>
+
+<p>其中<code class="highlighter-rouge">ItemDecoration#onDraw(Canvas c, RecyclerView parent, State state)</code>会在<code class="highlighter-rouge">RecyclerView</code>中</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>  <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDraw</span><span class="o">(</span><span class="nc">Canvas</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onDraw</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">onDraw</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="k">this</span><span class="o">,</span> <span class="n">mState</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">ItemDecoration#onDrawOver(Canvas c, RecyclerView parent, State state)</code>在<code class="highlighter-rouge">RecyclerView</code>中的</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>   <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">draw</span><span class="o">(</span><span class="nc">Canvas</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">draw</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">onDrawOver</span><span class="o">(</span><span class="n">c</span><span class="o">,</span> <span class="k">this</span><span class="o">,</span> <span class="n">mState</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="n">xxx</span>
+    <span class="o">}</span>    
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">ItemDecoration#getItemOffsets(Rect outRect, View view, RecyclerView parent, State state)</code>在<code class="highlighter-rouge">RecyclerView</code>中调用位置如下：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+</pre></td><td class="rouge-code"><pre> <span class="nc">Rect</span> <span class="nf">getItemDecorInsetsForChild</span><span class="o">(</span><span class="nc">View</span> <span class="n">child</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="nc">LayoutParams</span> <span class="n">lp</span> <span class="o">=</span> <span class="o">(</span><span class="nc">LayoutParams</span><span class="o">)</span> <span class="n">child</span><span class="o">.</span><span class="na">getLayoutParams</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">lp</span><span class="o">.</span><span class="na">mInsetsDirty</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">lp</span><span class="o">.</span><span class="na">mDecorInsets</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">mState</span><span class="o">.</span><span class="na">isPreLayout</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="o">(</span><span class="n">lp</span><span class="o">.</span><span class="na">isItemChanged</span><span class="o">()</span> <span class="o">||</span> <span class="n">lp</span><span class="o">.</span><span class="na">isViewInvalid</span><span class="o">()))</span> <span class="o">{</span>
+            <span class="c1">// changed/invalid items should not be updated until they are rebound.</span>
+            <span class="k">return</span> <span class="n">lp</span><span class="o">.</span><span class="na">mDecorInsets</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="kd">final</span> <span class="nc">Rect</span> <span class="n">insets</span> <span class="o">=</span> <span class="n">lp</span><span class="o">.</span><span class="na">mDecorInsets</span><span class="o">;</span>
+        <span class="n">insets</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">decorCount</span> <span class="o">=</span> <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">decorCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">mTempRect</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+            <span class="n">mItemDecorations</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">getItemOffsets</span><span class="o">(</span><span class="n">mTempRect</span><span class="o">,</span> <span class="n">child</span><span class="o">,</span> <span class="k">this</span><span class="o">,</span> <span class="n">mState</span><span class="o">);</span>
+            <span class="n">insets</span><span class="o">.</span><span class="na">left</span> <span class="o">+=</span> <span class="n">mTempRect</span><span class="o">.</span><span class="na">left</span><span class="o">;</span>
+            <span class="n">insets</span><span class="o">.</span><span class="na">top</span> <span class="o">+=</span> <span class="n">mTempRect</span><span class="o">.</span><span class="na">top</span><span class="o">;</span>
+            <span class="n">insets</span><span class="o">.</span><span class="na">right</span> <span class="o">+=</span> <span class="n">mTempRect</span><span class="o">.</span><span class="na">right</span><span class="o">;</span>
+            <span class="n">insets</span><span class="o">.</span><span class="na">bottom</span> <span class="o">+=</span> <span class="n">mTempRect</span><span class="o">.</span><span class="na">bottom</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">lp</span><span class="o">.</span><span class="na">mInsetsDirty</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="k">return</span> <span class="n">insets</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="实现recyclerview的分割线">实现RecyclerView的分割线</h2>
+
+<p>简述了上述几个方法之后，如何绘制分割线应该是比较轻松的事情了，好记性不如烂笔头，下次看到这里的时候不要打脸了。</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+</pre></td><td class="rouge-code"><pre> <span class="kd">class</span> <span class="nc">StickyItemDecoration</span><span class="p">(</span><span class="k">private</span> <span class="kd">val</span> <span class="py">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">ItemDecoration</span><span class="p">()</span> <span class="p">{</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线颜色</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerColor</span> <span class="p">=</span> <span class="n">Color</span><span class="p">.</span><span class="n">parseColor</span><span class="p">(</span><span class="s">"#E8E8E8"</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线高度</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerHeight</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线画笔</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">dividerPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span><span class="p">).</span><span class="n">also</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">color</span> <span class="p">=</span> <span class="n">dividerColor</span>
+    <span class="p">}</span>
+    
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之前调用，并且绘制的内容会在itemView下方。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDraw</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDraw</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">childCount</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">childCount</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="k">in</span> <span class="m">0</span> <span class="n">until</span> <span class="n">childCount</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">itemView</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span><span class="m">0F</span><span class="p">,</span> <span class="p">(</span><span class="n">itemView</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">dividerHeight</span><span class="p">).</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">itemView</span><span class="p">.</span><span class="n">right</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span>
+                    <span class="n">itemView</span><span class="p">.</span><span class="n">top</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">dividerPaint</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之后调用，并且绘制的内容会覆盖在itemView上。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDrawOver</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDrawOver</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 获取每个itemView的偏移量</span><span class="err">
+</span><span class="cm">     * @param outRect Rect to receive the output.</span><span class="err">
+</span><span class="cm">     * @param view    The child view to decorate</span><span class="err">
+</span><span class="cm">     * @param parent  RecyclerView this ItemDecoration is decorating</span><span class="err">
+</span><span class="cm">     * @param state   The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">getItemOffsets</span><span class="p">(</span><span class="nv">outRect</span><span class="p">:</span> <span class="nc">Rect</span><span class="p">?,</span> <span class="nv">view</span><span class="p">:</span> <span class="nc">View</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">?,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">getItemOffsets</span><span class="p">(</span><span class="n">outRect</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="n">outRect</span><span class="o">?.</span><span class="n">top</span> <span class="p">=</span> <span class="n">dividerHeight</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>设置<code class="highlighter-rouge">RecyclerView</code>的<code class="highlighter-rouge">ItemDecoration</code>之后，效果图如下：</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/divider.gif" alt="image" /></p>
+
+<h2 id="实现recyclerview的分割线--分组">实现RecyclerView的分割线 + 分组</h2>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+</pre></td><td class="rouge-code"><pre> <span class="kd">class</span> <span class="nc">StickyItemDecoration</span><span class="p">(</span><span class="k">private</span> <span class="kd">val</span> <span class="py">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">ItemDecoration</span><span class="p">()</span> <span class="p">{</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线颜色</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerColor</span> <span class="p">=</span> <span class="n">Color</span><span class="p">.</span><span class="n">parseColor</span><span class="p">(</span><span class="s">"#E8E8E8"</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线高度</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerHeight</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * sticky item高度</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">stickyItemHeight</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">30</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span><span class="p">).</span><span class="n">apply</span> <span class="p">{</span>
+        <span class="n">color</span> <span class="p">=</span> <span class="m">0</span><span class="n">xFFE8E8E8</span><span class="p">.</span><span class="n">toInt</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky文本</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyTextPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span> <span class="n">or</span> <span class="n">Paint</span><span class="p">.</span><span class="n">DITHER_FLAG</span><span class="p">).</span><span class="n">also</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">color</span> <span class="p">=</span> <span class="m">0</span><span class="n">xFF999999</span><span class="p">.</span><span class="n">toInt</span><span class="p">()</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">textSize</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">spToPx</span><span class="p">(</span><span class="m">16F</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * sticky文本的rect</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyTextRect</span> <span class="p">=</span> <span class="n">Rect</span><span class="p">()</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线画笔</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">dividerPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span><span class="p">).</span><span class="n">also</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">color</span> <span class="p">=</span> <span class="n">dividerColor</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 获取sticky文本</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">var</span> <span class="py">textCallback</span><span class="p">:</span> <span class="n">DividerTextCallback</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+
+
+    <span class="n">init</span> <span class="p">{</span>
+
+    <span class="p">}</span>
+
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之前调用，并且绘制的内容会在itemView下方。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDraw</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDraw</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">childCount</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">childCount</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="k">in</span> <span class="m">0</span> <span class="n">until</span> <span class="n">childCount</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">itemView</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="kd">val</span> <span class="py">position</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAdapterPosition</span><span class="p">(</span><span class="n">itemView</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">isFirstItemInGroup</span><span class="p">(</span><span class="n">position</span><span class="p">))</span> <span class="p">{</span>
+                <span class="kd">val</span> <span class="py">top</span> <span class="p">=</span> <span class="n">itemView</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">stickyItemHeight</span>
+                <span class="kd">val</span> <span class="py">bottom</span> <span class="p">=</span> <span class="n">itemView</span><span class="p">.</span><span class="n">top</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span>
+                    <span class="m">0F</span><span class="p">,</span> <span class="n">top</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">itemView</span><span class="p">.</span><span class="n">right</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span>
+                    <span class="n">bottom</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyPaint</span>
+                <span class="p">)</span>
+                <span class="n">drawStickyText</span><span class="p">(</span><span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span><span class="p">),</span> <span class="n">c</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span>
+                    <span class="m">0F</span><span class="p">,</span> <span class="p">(</span><span class="n">itemView</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">dividerHeight</span><span class="p">).</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">itemView</span><span class="p">.</span><span class="n">right</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span>
+                    <span class="n">itemView</span><span class="p">.</span><span class="n">top</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">dividerPaint</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之后调用，并且绘制的内容会覆盖在itemView上。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDrawOver</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDrawOver</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 获取每个itemView的偏移量</span><span class="err">
+</span><span class="cm">     * @param outRect Rect to receive the output.</span><span class="err">
+</span><span class="cm">     * @param view    The child view to decorate</span><span class="err">
+</span><span class="cm">     * @param parent  RecyclerView this ItemDecoration is decorating</span><span class="err">
+</span><span class="cm">     * @param state   The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">getItemOffsets</span><span class="p">(</span><span class="nv">outRect</span><span class="p">:</span> <span class="nc">Rect</span><span class="p">?,</span> <span class="nv">view</span><span class="p">:</span> <span class="nc">View</span><span class="p">,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">getItemOffsets</span><span class="p">(</span><span class="n">outRect</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">position</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAdapterPosition</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">isFirstItemInGroup</span><span class="p">(</span><span class="n">position</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">outRect</span><span class="o">?.</span><span class="n">top</span> <span class="p">=</span> <span class="n">stickyItemHeight</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">outRect</span><span class="o">?.</span><span class="n">top</span> <span class="p">=</span> <span class="n">dividerHeight</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 设置分组内容回调</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">fun</span> <span class="nf">setDividerTextCallback</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">textCallback</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">DividerTextCallback</span> <span class="p">{</span>
+            <span class="k">override</span> <span class="k">fun</span> <span class="nf">getDividerText</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">String</span> <span class="p">=</span> <span class="n">action</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 是否是分组的第一个item</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">isFirstItemInGroup</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">Boolean</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">if</span> <span class="p">(</span><span class="n">position</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">true</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">currentText</span> <span class="p">=</span> <span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+            <span class="kd">val</span> <span class="py">previewText</span> <span class="p">=</span> <span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span>
+            <span class="n">currentText</span> <span class="p">!=</span> <span class="n">previewText</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky内容</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">drawStickyText</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">?,</span> <span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">top</span><span class="p">:</span> <span class="nc">Int</span><span class="p">,</span> <span class="nv">bottom</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">left</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">10</span><span class="p">)</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">top</span> <span class="p">=</span> <span class="n">top</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">right</span> <span class="p">=</span> <span class="n">stickyTextPaint</span><span class="p">.</span><span class="n">measureText</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="n">toInt</span><span class="p">()</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">bottom</span> <span class="p">=</span> <span class="n">bottom</span>
+        <span class="kd">val</span> <span class="py">fontMetrics</span> <span class="p">=</span> <span class="n">stickyTextPaint</span><span class="p">.</span><span class="n">fontMetricsInt</span>
+        <span class="kd">val</span> <span class="py">baseline</span> <span class="p">=</span> <span class="p">(</span><span class="n">stickyTextRect</span><span class="p">.</span><span class="n">bottom</span> <span class="p">+</span> <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">fontMetrics</span><span class="p">.</span><span class="n">bottom</span> <span class="p">-</span> <span class="n">fontMetrics</span><span class="p">.</span><span class="n">top</span><span class="p">)</span> <span class="p">/</span> <span class="m">2</span>
+        <span class="n">c</span><span class="o">?.</span><span class="n">drawText</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">left</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">baseline</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyTextPaint</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分组text</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">interface</span> <span class="nc">DividerTextCallback</span> <span class="p">{</span>
+        <span class="cm">/**</span><span class="err">
+</span><span class="cm">         * 获取分组text</span><span class="err">
+</span><span class="cm">         */</span>
+        <span class="k">fun</span> <span class="nf">getDividerText</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">String</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>效果图：</p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/decoration.gif" alt="image" /></p>
+
+<h2 id="实现sticky效果">实现sticky效果</h2>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">StickyItemDecoration</span><span class="p">(</span><span class="k">private</span> <span class="kd">val</span> <span class="py">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">ItemDecoration</span><span class="p">()</span> <span class="p">{</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线颜色</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerColor</span> <span class="p">=</span> <span class="n">Color</span><span class="p">.</span><span class="n">parseColor</span><span class="p">(</span><span class="s">"#E8E8E8"</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线高度</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">dividerHeight</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * sticky item高度</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">var</span> <span class="py">stickyItemHeight</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">30</span><span class="p">)</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span><span class="p">).</span><span class="n">apply</span> <span class="p">{</span>
+        <span class="n">color</span> <span class="p">=</span> <span class="m">0</span><span class="n">xFFE8E8E8</span><span class="p">.</span><span class="n">toInt</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky文本</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyTextPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span> <span class="n">or</span> <span class="n">Paint</span><span class="p">.</span><span class="n">DITHER_FLAG</span><span class="p">).</span><span class="n">also</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">color</span> <span class="p">=</span> <span class="m">0</span><span class="n">xFF999999</span><span class="p">.</span><span class="n">toInt</span><span class="p">()</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">textSize</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">spToPx</span><span class="p">(</span><span class="m">16F</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * sticky文本的rect</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">stickyTextRect</span> <span class="p">=</span> <span class="n">Rect</span><span class="p">()</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分割线画笔</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">dividerPaint</span> <span class="p">=</span> <span class="n">Paint</span><span class="p">(</span><span class="n">Paint</span><span class="p">.</span><span class="n">ANTI_ALIAS_FLAG</span><span class="p">).</span><span class="n">also</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">.</span><span class="n">color</span> <span class="p">=</span> <span class="n">dividerColor</span>
+    <span class="p">}</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 获取sticky文本</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="kd">var</span> <span class="py">textCallback</span><span class="p">:</span> <span class="n">DividerTextCallback</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+
+
+    <span class="n">init</span> <span class="p">{</span>
+
+    <span class="p">}</span>
+
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之前调用，并且绘制的内容会在itemView下方。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDraw</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDraw</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">childCount</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">childCount</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="k">in</span> <span class="m">0</span> <span class="n">until</span> <span class="n">childCount</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">itemView</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="kd">val</span> <span class="py">position</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAdapterPosition</span><span class="p">(</span><span class="n">itemView</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">isFirstItemInGroup</span><span class="p">(</span><span class="n">position</span><span class="p">))</span> <span class="p">{</span>
+                <span class="kd">val</span> <span class="py">top</span> <span class="p">=</span> <span class="n">itemView</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">stickyItemHeight</span>
+                <span class="kd">val</span> <span class="py">bottom</span> <span class="p">=</span> <span class="n">itemView</span><span class="p">.</span><span class="n">top</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span>
+                    <span class="m">0F</span><span class="p">,</span> <span class="n">top</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">itemView</span><span class="p">.</span><span class="n">right</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span>
+                    <span class="n">bottom</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyPaint</span>
+                <span class="p">)</span>
+                <span class="n">drawStickyText</span><span class="p">(</span><span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span><span class="p">),</span> <span class="n">c</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span><span class="p">)</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span>
+                    <span class="m">0F</span><span class="p">,</span> <span class="p">(</span><span class="n">itemView</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">dividerHeight</span><span class="p">).</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">itemView</span><span class="p">.</span><span class="n">right</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span>
+                    <span class="n">itemView</span><span class="p">.</span><span class="n">top</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">dividerPaint</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 这个方法会在RecyclerView绘制itemView之后调用，并且绘制的内容会覆盖在itemView上。</span><span class="err">
+</span><span class="cm">     * @param c Canvas to draw into</span><span class="err">
+</span><span class="cm">     * @param parent RecyclerView this ItemDecoration is drawing into</span><span class="err">
+</span><span class="cm">     * @param state The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onDrawOver</span><span class="p">(</span><span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onDrawOver</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">childCount</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">childCount</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">childCount</span> <span class="p">&gt;</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">//sticky效果其实就是处理第一个itemView，然后让悬浮内容置于第一个itemView之上。</span>
+            <span class="kd">val</span> <span class="py">firstView</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAt</span><span class="p">(</span><span class="m">0</span><span class="p">)</span>
+
+            <span class="kd">val</span> <span class="py">position</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAdapterPosition</span><span class="p">(</span><span class="n">firstView</span><span class="p">)</span>
+            <span class="kd">val</span> <span class="py">text</span> <span class="p">=</span> <span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">firstView</span><span class="p">.</span><span class="n">bottom</span> <span class="p">&lt;=</span> <span class="n">stickyItemHeight</span> <span class="p">&amp;&amp;</span> <span class="n">isFirstItemInGroup</span><span class="p">(</span><span class="n">position</span> <span class="p">+</span> <span class="m">1</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span><span class="m">0F</span><span class="p">,</span> <span class="m">0F</span><span class="p">,</span> <span class="n">firstView</span><span class="p">.</span><span class="n">width</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">firstView</span><span class="p">.</span><span class="n">bottom</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyPaint</span><span class="p">)</span>
+                <span class="n">drawStickyText</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">firstView</span><span class="p">.</span><span class="n">bottom</span> <span class="p">-</span> <span class="n">stickyItemHeight</span><span class="p">,</span> <span class="n">firstView</span><span class="p">.</span><span class="n">bottom</span><span class="p">)</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">c</span><span class="o">?.</span><span class="n">drawRect</span><span class="p">(</span><span class="m">0F</span><span class="p">,</span> <span class="m">0F</span><span class="p">,</span> <span class="n">firstView</span><span class="p">.</span><span class="n">width</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyItemHeight</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyPaint</span><span class="p">)</span>
+                <span class="n">drawStickyText</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">stickyItemHeight</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 获取每个itemView的偏移量</span><span class="err">
+</span><span class="cm">     * @param outRect Rect to receive the output.</span><span class="err">
+</span><span class="cm">     * @param view    The child view to decorate</span><span class="err">
+</span><span class="cm">     * @param parent  RecyclerView this ItemDecoration is decorating</span><span class="err">
+</span><span class="cm">     * @param state   The current state of RecyclerView.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">getItemOffsets</span><span class="p">(</span><span class="nv">outRect</span><span class="p">:</span> <span class="nc">Rect</span><span class="p">?,</span> <span class="nv">view</span><span class="p">:</span> <span class="nc">View</span><span class="p">,</span> <span class="nv">parent</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span> <span class="nc">RecyclerView</span><span class="p">.</span><span class="n">State</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">getItemOffsets</span><span class="p">(</span><span class="n">outRect</span><span class="p">,</span> <span class="n">view</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">position</span> <span class="p">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getChildAdapterPosition</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">isFirstItemInGroup</span><span class="p">(</span><span class="n">position</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">outRect</span><span class="o">?.</span><span class="n">top</span> <span class="p">=</span> <span class="n">stickyItemHeight</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">outRect</span><span class="o">?.</span><span class="n">top</span> <span class="p">=</span> <span class="n">dividerHeight</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 设置分组内容回调</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">fun</span> <span class="nf">setDividerTextCallback</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">textCallback</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">DividerTextCallback</span> <span class="p">{</span>
+            <span class="k">override</span> <span class="k">fun</span> <span class="nf">getDividerText</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">String</span> <span class="p">=</span> <span class="n">action</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 是否是分组的第一个item</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">isFirstItemInGroup</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">Boolean</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">if</span> <span class="p">(</span><span class="n">position</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">true</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">currentText</span> <span class="p">=</span> <span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+            <span class="kd">val</span> <span class="py">previewText</span> <span class="p">=</span> <span class="n">textCallback</span><span class="o">?.</span><span class="n">getDividerText</span><span class="p">(</span><span class="n">position</span> <span class="p">-</span> <span class="m">1</span><span class="p">)</span>
+            <span class="n">currentText</span> <span class="p">!=</span> <span class="n">previewText</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 绘制sticky内容</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">drawStickyText</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">?,</span> <span class="nv">c</span><span class="p">:</span> <span class="nc">Canvas</span><span class="p">?,</span> <span class="nv">top</span><span class="p">:</span> <span class="nc">Int</span><span class="p">,</span> <span class="nv">bottom</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">left</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="n">dpToPixel</span><span class="p">(</span><span class="m">10</span><span class="p">)</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">top</span> <span class="p">=</span> <span class="n">top</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">right</span> <span class="p">=</span> <span class="n">stickyTextPaint</span><span class="p">.</span><span class="n">measureText</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="n">toInt</span><span class="p">()</span>
+        <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">bottom</span> <span class="p">=</span> <span class="n">bottom</span>
+        <span class="kd">val</span> <span class="py">fontMetrics</span> <span class="p">=</span> <span class="n">stickyTextPaint</span><span class="p">.</span><span class="n">fontMetricsInt</span>
+        <span class="kd">val</span> <span class="py">baseline</span> <span class="p">=</span> <span class="p">(</span><span class="n">stickyTextRect</span><span class="p">.</span><span class="n">bottom</span> <span class="p">+</span> <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">top</span> <span class="p">-</span> <span class="n">fontMetrics</span><span class="p">.</span><span class="n">bottom</span> <span class="p">-</span> <span class="n">fontMetrics</span><span class="p">.</span><span class="n">top</span><span class="p">)</span> <span class="p">/</span> <span class="m">2</span>
+        <span class="n">c</span><span class="o">?.</span><span class="n">drawText</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">stickyTextRect</span><span class="p">.</span><span class="n">left</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">baseline</span><span class="p">.</span><span class="n">toFloat</span><span class="p">(),</span> <span class="n">stickyTextPaint</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * 分组text</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="kd">interface</span> <span class="nc">DividerTextCallback</span> <span class="p">{</span>
+        <span class="cm">/**</span><span class="err">
+</span><span class="cm">         * 获取分组text</span><span class="err">
+</span><span class="cm">         */</span>
+        <span class="k">fun</span> <span class="nf">getDividerText</span><span class="p">(</span><span class="nv">position</span><span class="p">:</span> <span class="nc">Int</span><span class="p">):</span> <span class="nc">String</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>效果图：</p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/sticky.gif" alt="image" /></p>
+
+<h2 id="源码地址">源码地址</h2>
+
+<p><a href="https://github.com/qfxl/AndroidDemos/tree/master/stickyItemDecoration">stickyItemDecoration</a></p>
+:ET

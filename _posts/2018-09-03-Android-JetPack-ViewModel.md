@@ -6,8 +6,8 @@ author: "xyh"
 header-img: "img/post-bg-dreamer.jpg"
 header-mask: 0.4
 tags:
-  - Facebook
-  - 生活
+  - Jetpack
+  - ViewModel
 ---
 
 > 本文记录[Android Jetpack][1]中`Architecture`部分的[ViewModel][4]以及工作原理。
@@ -20,7 +20,7 @@ tags:
 
 本文记录[Android Jetpack][3]架构组件（Architecture）中的[ViewModel][4]。
 
-## ViewModel概述
+# ViewModel概述
 `ViewModel`用来管理UI交互的数据，它保存的数据不会因为`Activity`配置改变而重新生成，比如屏幕旋转会重新触发`onCreate()`，但是`ViewModel`保存的数据不会丢失。
 
 `Activity`和`Fragment`的生命周期是由`Framework`管理，`Framework`会在不在用户控制的情况下对`Activity`、`Fragment`进行销毁和重建。
@@ -31,7 +31,7 @@ tags:
 ![效果图][5]
 
 
-## 实现ViewModel
+# 实现ViewModel
 实现`ViewModel`只需要继承`ViewModel`即可，如：
 ```kotlin
 class TextViewModel : ViewModel() {
@@ -87,13 +87,13 @@ public class AndroidViewModel extends ViewModel {
 }
 ```
 
-## ViewModel的生命周期
+# ViewModel的生命周期
 
 ![ViewModel的生命周期][7]
 
 通常情况下会在`Activity`的`onCreate()`方法获取`ViewModel`，此后无论`onCreate()`调用多少次，获取到的`ViewModel`都是同一个实例。
 
-## ViewModel源码分析
+# ViewModel源码分析
 ```kotlin
 public abstract class ViewModel {
     /**
@@ -109,7 +109,7 @@ public abstract class ViewModel {
 ```
 `ViewModel`是一个抽象类，中间只有一个可选择实现的方法`onCleared()`，该方法会在重复缓存当前`ViewModel`到`ViewModelStore`中或者`HolderFragment`的`onDestory()`被调用，用于回收资源。
 
-## ViewModelProviders.of(xxx).get(xxx)源码分析
+# ViewModelProviders.of(xxx).get(xxx)源码分析
 对于上文中出现的代码：
 ```kotlin
 val textViewModel = ViewModelProviders.of(this).get(TextViewModel::class.java)

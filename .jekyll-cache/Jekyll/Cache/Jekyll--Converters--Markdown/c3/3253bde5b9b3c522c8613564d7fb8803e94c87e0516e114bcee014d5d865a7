@@ -1,0 +1,90 @@
+I"<blockquote>
+  <p>leetcode算法之宝石与石头。</p>
+</blockquote>
+
+<h1 id="宝石与石头">宝石与石头</h1>
+
+<p><a href="https://leetcode-cn.com/problems/jewels-and-stones/">该题为leetcode入门算法之一。</a></p>
+
+<p>给定字符串J 代表石头中宝石的类型，和字符串 S代表你拥有的石头。 S 中每个字符代表了一种你拥有的石头的类型，你想知道你拥有的石头中有多少是宝石。</p>
+
+<p>J 中的字母不重复，J 和 S中的所有字符都是字母。字母区分大小写，因此”a”和”A”是不同类型的石头。</p>
+
+<p>如：</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="err">输入</span><span class="p">:</span> <span class="n">J</span> <span class="p">=</span> <span class="s">"aA"</span><span class="p">,</span> <span class="n">S</span> <span class="p">=</span> <span class="s">"aAAbbbb"</span>
+<span class="err">输出</span><span class="p">:</span> <span class="m">3</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="err">输入</span><span class="p">:</span> <span class="n">J</span> <span class="p">=</span> <span class="s">"z"</span><span class="p">,</span> <span class="n">S</span> <span class="p">=</span> <span class="s">"ZZ"</span>
+<span class="err">输出</span><span class="p">:</span> <span class="m">0</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>注意</strong></p>
+
+<ul>
+  <li>S 和 J 最多含有50个字母。</li>
+  <li>J 中的字符不重复。</li>
+</ul>
+
+<h2 id="方法一">方法一</h2>
+
+<p>最容易想到的办法，依次循环S，判断里面是否包含J。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">findJewelsInStones1</span><span class="o">(</span><span class="nc">String</span> <span class="n">jewels</span><span class="o">,</span> <span class="nc">String</span> <span class="n">stones</span><span class="o">)</span> <span class="o">{</span>	
+	<span class="kt">char</span><span class="o">[]</span> <span class="n">jls</span> <span class="o">=</span> <span class="n">jewels</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">();</span>
+	<span class="kt">char</span><span class="o">[]</span> <span class="n">sts</span> <span class="o">=</span> <span class="n">stones</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">();</span>
+	<span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">count</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">sts</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+		<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">jls</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+			<span class="k">if</span> <span class="o">(</span><span class="n">sts</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">==</span> <span class="n">jls</span><span class="o">[</span><span class="n">j</span><span class="o">])</span> <span class="o">{</span>
+				<span class="n">count</span><span class="o">++;</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+	<span class="k">return</span> <span class="n">count</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="方法二">方法二</h2>
+
+<p>利用<code class="highlighter-rouge">String</code>中的<code class="highlighter-rouge">indexOf()</code>方法。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="nf">findJewelsInStones2</span><span class="o">(</span><span class="nc">String</span> <span class="n">jewels</span><span class="o">,</span> <span class="nc">String</span> <span class="n">stones</span><span class="o">)</span> <span class="o">{</span>
+	<span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">stones</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">().</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+		<span class="k">if</span> <span class="o">(</span><span class="n">jewels</span><span class="o">.</span><span class="na">indexOf</span><span class="o">(</span><span class="n">stones</span><span class="o">.</span><span class="na">charAt</span><span class="o">(</span><span class="n">i</span><span class="o">))</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+			<span class="n">count</span><span class="o">++;</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+	<span class="k">return</span> <span class="n">count</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

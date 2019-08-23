@@ -1,0 +1,564 @@
+I"��<blockquote>
+  <p>本文记录EventBus源码解析内容，版本为3.1.1，从几个核心方法依次入手，<code class="highlighter-rouge">register</code>、<code class="highlighter-rouge">post</code>、<code class="highlighter-rouge">postSticky</code>、<code class="highlighter-rouge">unregister</code>。</p>
+</blockquote>
+
+<h1 id="eventbus">EventBUs</h1>
+<p><a href="https://github.com/greenrobot/EventBus">EventBus</a>是Android和Java上的一个事件发布、订阅框架。</p>
+
+<p>核心功能：</p>
+
+<ul>
+  <li>简化了组件之间的通信。
+    <ul>
+      <li>将事件的发送者跟接受者隔离。</li>
+      <li>同时适用于Activity、Fragment及后台线程。</li>
+      <li>避免了错综复杂的生命周期依赖。</li>
+    </ul>
+  </li>
+  <li>使组价你通信代码变得更为简单。</li>
+  <li>通信速度快</li>
+  <li>jar包小（~50k）</li>
+  <li>超过100000000+的应用使用。</li>
+  <li>可以定义接受者的优先级等其他辅助功能。</li>
+</ul>
+
+<p>流程图如下：
+<img src="https://raw.githubusercontent.com/greenrobot/EventBus/master/EventBus-Publish-Subscribe.png" alt="EventBus流程图" /></p>
+
+<p>类关系图如下：
+<img src="https://raw.githubusercontent.com/android-cn/android-open-project-analysis/master/tool-lib/event-bus/event-bus/image/class-relation.png" alt="EventBus类关系图" /></p>
+
+<h2 id="register">register</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>   <span class="kd">public</span> <span class="kt">void</span> <span class="nf">register</span><span class="o">(</span><span class="nc">Object</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">subscriberClass</span> <span class="o">=</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">SubscriberMethod</span><span class="o">&gt;</span> <span class="n">subscriberMethods</span> <span class="o">=</span> <span class="n">subscriberMethodFinder</span><span class="o">.</span><span class="na">findSubscriberMethods</span><span class="o">(</span><span class="n">subscriberClass</span><span class="o">);</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">SubscriberMethod</span> <span class="n">subscriberMethod</span> <span class="o">:</span> <span class="n">subscriberMethods</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">subscribe</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>该函数会根据订阅者的类名去<a href="https://github.com/greenrobot/EventBus/blob/master/EventBus/src/org/greenrobot/eventbus/SubscriberMethodFinder.java">subscriberMethodFinder</a>查找当前订阅者的所有响应方法。具体是获取有注解<code class="highlighter-rouge">@Subscribe</code>的方法，同时方法必须是<code class="highlighter-rouge">public</code>不能为<code class="highlighter-rouge">static</code>、<code class="highlighter-rouge">abstract</code>。接着循环每个响应方法，依次执行<code class="highlighter-rouge">subscribe</code>。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">void</span> <span class="nf">subscribe</span><span class="o">(</span><span class="nc">Object</span> <span class="n">subscriber</span><span class="o">,</span> <span class="nc">SubscriberMethod</span> <span class="n">subscriberMethod</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span> <span class="o">=</span> <span class="n">subscriberMethod</span><span class="o">.</span><span class="na">eventType</span><span class="o">;</span>
+        <span class="nc">Subscription</span> <span class="n">newSubscription</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Subscription</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscriberMethod</span><span class="o">);</span>
+        <span class="nc">CopyOnWriteArrayList</span><span class="o">&lt;</span><span class="nc">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscriptions</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">CopyOnWriteArrayList</span><span class="o">&lt;&gt;();</span>
+            <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">eventType</span><span class="o">,</span> <span class="n">subscriptions</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">EventBusException</span><span class="o">(</span><span class="s">"Subscriber "</span> <span class="o">+</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">()</span> <span class="o">+</span> <span class="s">" already registered to event "</span>
+                        <span class="o">+</span> <span class="n">eventType</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="kt">int</span> <span class="n">size</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">size</span> <span class="o">||</span> <span class="n">subscriberMethod</span><span class="o">.</span><span class="na">priority</span> <span class="o">&gt;</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">priority</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">subscriptions</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">i</span><span class="o">,</span> <span class="n">newSubscription</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">subscribedEvents</span> <span class="o">=</span> <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscribedEvents</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">subscribedEvents</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;&gt;();</span>
+            <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">subscribedEvents</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="c1">//暂存</span>
+        <span class="n">subscribedEvents</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+        <span class="c1">//处理sticky事件，如果之前有发布对应的sticky事件则在当前subscriber注册之后去触发对应的方法。</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethod</span><span class="o">.</span><span class="na">sticky</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+                <span class="c1">// Existing sticky events of all subclasses of eventType have to be considered.</span>
+                <span class="c1">// Note: Iterating over all events may be inefficient with lots of sticky events,</span>
+                <span class="c1">// thus data structure should be changed to allow a more efficient lookup</span>
+                <span class="c1">// (e.g. an additional map storing sub classes of super classes: Class -&gt; List&lt;Class&gt;).</span>
+                <span class="nc">Set</span><span class="o">&lt;</span><span class="nc">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;,</span> <span class="nc">Object</span><span class="o">&gt;&gt;</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">entrySet</span><span class="o">();</span>
+                <span class="k">for</span> <span class="o">(</span><span class="nc">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">entry</span> <span class="o">:</span> <span class="n">entries</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">candidateEventType</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getKey</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">eventType</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">candidateEventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="nc">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">();</span>
+                        <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="nc">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+                <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">subscribe</code>通过<code class="highlighter-rouge">subscriptionsByEventType</code>得到该事件类型所有订阅者信息队列，根据优先级将当前订阅者信息插入到订阅者队列<code class="highlighter-rouge">subscriptionsByEventType</code>中。
+在<code class="highlighter-rouge">typesBySubscriber</code>中得到当前订阅者订阅的所有事件队列，将此事件保存到队列<code class="highlighter-rouge">typesBySubscriber</code>中，用于后续取消订阅；
+检查这个事件是否是 Sticky 事件，如果是则从<code class="highlighter-rouge">stickyEvents</code>事件保存队列中取出该事件类型最后一个事件发送给当前订阅者。</p>
+
+<h2 id="post">post</h2>
+
+<p><img src="https://raw.githubusercontent.com/android-cn/android-open-project-analysis/master/tool-lib/event-bus/event-bus/image/post-flow-chart.png" alt="post流程" /></p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kt">void</span> <span class="nf">post</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//从ThreadLocal中取出当前的PostingThreadState</span>
+        <span class="nc">PostingThreadState</span> <span class="n">postingState</span> <span class="o">=</span> <span class="n">currentPostingThreadState</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+        <span class="c1">//获取事件队列</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Object</span><span class="o">&gt;</span> <span class="n">eventQueue</span> <span class="o">=</span> <span class="n">postingState</span><span class="o">.</span><span class="na">eventQueue</span><span class="o">;</span>
+        <span class="c1">//添加事件到事件队列中</span>
+        <span class="n">eventQueue</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(!</span><span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">//判断当前是否是主线程</span>
+            <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span> <span class="o">=</span> <span class="n">isMainThread</span><span class="o">();</span>
+            <span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">EventBusException</span><span class="o">(</span><span class="s">"Internal error. Abort state was not reset"</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="k">while</span> <span class="o">(!</span><span class="n">eventQueue</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+                    <span class="c1">//具体调用方法</span>
+                    <span class="n">postSingleEvent</span><span class="o">(</span><span class="n">eventQueue</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">postingState</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">isPosting</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">void</span> <span class="nf">postSingleEvent</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">,</span> <span class="nc">PostingThreadState</span> <span class="n">postingState</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Error</span> <span class="o">{</span>
+        <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventClass</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getClass</span><span class="o">();</span>
+        <span class="kt">boolean</span> <span class="n">subscriptionFound</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="c1">//EventBus提供的DEFAULT_BUILDER中，这个参数为true，是否从父类查找对应的@subscribe方法。</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">eventTypes</span> <span class="o">=</span> <span class="n">lookupAllEventTypes</span><span class="o">(</span><span class="n">eventClass</span><span class="o">);</span>
+            <span class="kt">int</span> <span class="n">countTypes</span> <span class="o">=</span> <span class="n">eventTypes</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">h</span> <span class="o">&lt;</span> <span class="n">countTypes</span><span class="o">;</span> <span class="n">h</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span> <span class="o">=</span> <span class="n">eventTypes</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">h</span><span class="o">);</span>
+                <span class="c1">//继续调用</span>
+                <span class="n">subscriptionFound</span> <span class="o">|=</span> <span class="n">postSingleEventForEventType</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">,</span> <span class="n">clazz</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">subscriptionFound</span> <span class="o">=</span> <span class="n">postSingleEventForEventType</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">,</span> <span class="n">eventClass</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="c1">//如果没有@subscribe方法</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">subscriptionFound</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">logNoSubscriberMessages</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">logger</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="na">FINE</span><span class="o">,</span> <span class="s">"No subscribers registered for event "</span> <span class="o">+</span> <span class="n">eventClass</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="c1">//sendNoSubscriberEvent表示是否继续发送没有接收者的Event，默认为true。</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">sendNoSubscriberEvent</span> <span class="o">&amp;&amp;</span> <span class="n">eventClass</span> <span class="o">!=</span> <span class="nc">NoSubscriberEvent</span><span class="o">.</span><span class="na">class</span> <span class="o">&amp;&amp;</span>
+                    <span class="n">eventClass</span> <span class="o">!=</span> <span class="nc">SubscriberExceptionEvent</span><span class="o">.</span><span class="na">class</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">post</span><span class="o">(</span><span class="k">new</span> <span class="nc">NoSubscriberEvent</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">event</span><span class="o">));</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">postSingleEventForEventType</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">,</span> <span class="nc">PostingThreadState</span> <span class="n">postingState</span><span class="o">,</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">CopyOnWriteArrayList</span><span class="o">&lt;</span><span class="nc">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span><span class="o">;</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="k">this</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">//这个在调用register会先put对应的eventClass。</span>
+            <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventClass</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">subscriptions</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">Subscription</span> <span class="n">subscription</span> <span class="o">:</span> <span class="n">subscriptions</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">event</span> <span class="o">=</span> <span class="n">event</span><span class="o">;</span>
+                <span class="n">postingState</span><span class="o">.</span><span class="na">subscription</span> <span class="o">=</span> <span class="n">subscription</span><span class="o">;</span>
+                <span class="kt">boolean</span> <span class="n">aborted</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="c1">//这里继续调用</span>
+                    <span class="n">postToSubscription</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">,</span> <span class="n">postingState</span><span class="o">.</span><span class="na">isMainThread</span><span class="o">);</span>
+                    <span class="n">aborted</span> <span class="o">=</span> <span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span><span class="o">;</span>
+                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">event</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">subscription</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+                    <span class="n">postingState</span><span class="o">.</span><span class="na">canceled</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                <span class="o">}</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">aborted</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">break</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">void</span> <span class="nf">postToSubscription</span><span class="o">(</span><span class="nc">Subscription</span> <span class="n">subscription</span><span class="o">,</span> <span class="nc">Object</span> <span class="n">event</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//该方法都会根据反射去调用对应的方法。</span>
+        <span class="k">switch</span> <span class="o">(</span><span class="n">subscription</span><span class="o">.</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">threadMode</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">//默认线程</span>
+            <span class="k">case</span> <span class="nl">POSTING:</span>
+                <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="c1">//主线程</span>
+            <span class="k">case</span> <span class="nl">MAIN:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="c1">//主线程有序调用</span>
+            <span class="k">case</span> <span class="nl">MAIN_ORDERED:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">mainThreadPoster</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">mainThreadPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="c1">// temporary: technically not correct as poster not decoupled from subscriber</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="c1">//后台线程</span>
+            <span class="k">case</span> <span class="nl">BACKGROUND:</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">isMainThread</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">backgroundPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                    <span class="n">invokeSubscriber</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="c1">//异步</span>
+            <span class="k">case</span> <span class="nl">ASYNC:</span>
+                <span class="n">asyncPoster</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="n">subscription</span><span class="o">,</span> <span class="n">event</span><span class="o">);</span>
+                <span class="k">break</span><span class="o">;</span>
+            <span class="k">default</span><span class="o">:</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalStateException</span><span class="o">(</span><span class="s">"Unknown thread mode: "</span> <span class="o">+</span> <span class="n">subscription</span><span class="o">.</span><span class="na">subscriberMethod</span><span class="o">.</span><span class="na">threadMode</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>以上代码就是<a href="https://github.com/greenrobot/EventBus">EventBus</a> <code class="highlighter-rouge">post</code>的大致流程。</p>
+
+<h2 id="unregister">unregister</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">unregister</span><span class="o">(</span><span class="nc">Object</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">subscribedTypes</span> <span class="o">=</span> <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscribedTypes</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span> <span class="o">:</span> <span class="n">subscribedTypes</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">unsubscribeByEventType</span><span class="o">(</span><span class="n">subscriber</span><span class="o">,</span> <span class="n">eventType</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="n">typesBySubscriber</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">subscriber</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">logger</span><span class="o">.</span><span class="na">log</span><span class="o">(</span><span class="nc">Level</span><span class="o">.</span><span class="na">WARNING</span><span class="o">,</span> <span class="s">"Subscriber to unregister was not registered before: "</span> <span class="o">+</span> <span class="n">subscriber</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    
+<span class="kd">private</span> <span class="kt">void</span> <span class="nf">unsubscribeByEventType</span><span class="o">(</span><span class="nc">Object</span> <span class="n">subscriber</span><span class="o">,</span> <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">eventType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Subscription</span><span class="o">&gt;</span> <span class="n">subscriptions</span> <span class="o">=</span> <span class="n">subscriptionsByEventType</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriptions</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">int</span> <span class="n">size</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="nc">Subscription</span> <span class="n">subscription</span> <span class="o">=</span> <span class="n">subscriptions</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">subscription</span><span class="o">.</span><span class="na">subscriber</span> <span class="o">==</span> <span class="n">subscriber</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">subscription</span><span class="o">.</span><span class="na">active</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+                    <span class="n">subscriptions</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">i</span><span class="o">);</span>
+                    <span class="n">i</span><span class="o">--;</span>
+                    <span class="n">size</span><span class="o">--;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>该方法总结一下就是清除之前<code class="highlighter-rouge">register</code>的遗留信息。</p>
+
+<h2 id="sticky事件">Sticky事件</h2>
+<p>一般的事件<code class="highlighter-rouge">post</code>之后，在<code class="highlighter-rouge">post</code>之后注册的接收者无法接收到该事件，鉴于这种情况，有了<code class="highlighter-rouge">Sticky</code>事件，<code class="highlighter-rouge">Sticky</code>事件<code class="highlighter-rouge">post</code>之后，在之后注册的接收者依然能够接收到该事件。</p>
+
+<p>在源码中的实现如下：</p>
+
+<p><code class="highlighter-rouge">EventBus#postSticky(object)</code></p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kt">void</span> <span class="nf">postSticky</span><span class="o">(</span><span class="nc">Object</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">stickyEvents</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">//这里会暂存sticky事件</span>
+            <span class="n">stickyEvents</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">event</span><span class="o">.</span><span class="na">getClass</span><span class="o">(),</span> <span class="n">event</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="c1">//调用正常的post流程</span>
+        <span class="n">post</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>再回到<code class="highlighter-rouge">EventBus#register()</code>方法中调用的<code class="highlighter-rouge">subscribe()</code></p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="rouge-code"><pre> <span class="kd">private</span> <span class="kt">void</span> <span class="nf">subscribe</span><span class="o">(</span><span class="nc">Object</span> <span class="n">subscriber</span><span class="o">,</span> <span class="nc">SubscriberMethod</span> <span class="n">subscriberMethod</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">xxx</span>
+        <span class="c1">//处理sticky事件，如果之前有发布对应的sticky事件则在当前subscriber注册之后去触发对应的方法。</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">subscriberMethod</span><span class="o">.</span><span class="na">sticky</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">eventInheritance</span><span class="o">)</span> <span class="o">{</span>
+                <span class="c1">//获取暂存的对应sticky事件</span>
+                <span class="nc">Set</span><span class="o">&lt;</span><span class="nc">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;,</span> <span class="nc">Object</span><span class="o">&gt;&gt;</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">entrySet</span><span class="o">();</span>
+                <span class="k">for</span> <span class="o">(</span><span class="nc">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="nc">Class</span><span class="o">&lt;?&gt;,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">entry</span> <span class="o">:</span> <span class="n">entries</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="nc">Class</span><span class="o">&lt;?&gt;</span> <span class="n">candidateEventType</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getKey</span><span class="o">();</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">eventType</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">candidateEventType</span><span class="o">))</span> <span class="o">{</span>
+                        <span class="nc">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">();</span>
+                        <span class="c1">//触发对应的接收者方法       </span>
+                        <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="nc">Object</span> <span class="n">stickyEvent</span> <span class="o">=</span> <span class="n">stickyEvents</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">eventType</span><span class="o">);</span>
+                <span class="n">checkPostStickyEventToSubscription</span><span class="o">(</span><span class="n">newSubscription</span><span class="o">,</span> <span class="n">stickyEvent</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果想移除<code class="highlighter-rouge">sticky</code>事件的话，只需要调用</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre> <span class="nc">EventBus</span><span class="o">.</span><span class="na">getDefault</span><span class="o">().</span><span class="na">removeStickyEvent</span><span class="o">(</span><span class="n">stickyEvent</span><span class="o">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>对应<a href="https://github.com/greenrobot/EventBus">EventBus</a>中的源码：</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">removeStickyEvent</span><span class="o">(</span><span class="nc">Class</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">eventType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">synchronized</span> <span class="o">(</span><span class="n">stickyEvents</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">eventType</span><span class="o">.</span><span class="na">cast</span><span class="o">(</span><span class="n">stickyEvents</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="n">eventType</span><span class="o">));</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

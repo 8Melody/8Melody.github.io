@@ -1,0 +1,87 @@
+I"�!<blockquote>
+  <p>leetcode经典算法之两数之和。</p>
+</blockquote>
+
+<h1 id="两数之和">两数之和</h1>
+
+<p><a href="https://leetcode.com/problems/two-sum/">该题为leetcode入门算法之一。</a></p>
+
+<p>给定一个int数组<code class="highlighter-rouge">nums</code>，给定一个指定值<code class="highlighter-rouge">target</code>，在数组中找到2个数的下标，它们之和等于指定值<code class="highlighter-rouge">target</code>，数组<code class="highlighter-rouge">nums</code>的数据不能重复使用，并且指定值<code class="highlighter-rouge">target</code>在数组中任意数据之和只有一种组合。</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="n">Given</span> <span class="n">nums</span> <span class="p">=</span> <span class="p">[</span><span class="m">2</span><span class="p">,</span> <span class="m">7</span><span class="p">,</span> <span class="m">11</span><span class="p">,</span> <span class="m">15</span><span class="p">],</span> <span class="n">target</span> <span class="p">=</span> <span class="m">9</span><span class="p">,</span>
+
+<span class="n">Because</span> <span class="n">nums</span><span class="p">[</span><span class="m">0</span><span class="p">]</span> <span class="p">+</span> <span class="n">nums</span><span class="p">[</span><span class="m">1</span><span class="p">]</span> <span class="p">=</span> <span class="m">2</span> <span class="p">+</span> <span class="m">7</span> <span class="p">=</span> <span class="m">9</span><span class="p">,</span>
+<span class="k">return</span> <span class="p">[</span><span class="m">0</span><span class="p">,</span> <span class="m">1</span><span class="p">]</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>首先分析该题：</p>
+
+<p>数组中元素不会重复；
+不能重复使用相同元素；
+有这两个做前提下这题变得比较简单起来，这里用两种方案来实现。</p>
+
+<h2 id="方法一">方法一</h2>
+
+<p>使用“选择相加法”，这也是最容易想到的办法，选择某一个元素，然后与其他元素分别相加，如果结果等于<code class="highlighter-rouge">target</code>，则返回这两个数的角标。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">int</span><span class="o">[]</span> <span class="nf">twoSum</span><span class="o">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">nums</span><span class="o">,</span> <span class="kt">int</span> <span class="n">target</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nums</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">nums</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">+</span> <span class="n">nums</span><span class="o">[</span><span class="n">j</span><span class="o">]</span> <span class="o">==</span> <span class="n">target</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">i</span><span class="o">,</span> <span class="n">j</span><span class="o">};</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="方法二">方法二</h2>
+
+<p>利用一个Map存储<code class="highlighter-rouge">nums</code>的信息，key为nums里面的元素，value为其对应的角标。再使用一个变量<code class="highlighter-rouge">diff</code>去记住<code class="highlighter-rouge">target</code>跟当前元素的差值，最后去Map里查找这个差值，如果能找到，则返回。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre><span class="kd">private</span> <span class="kt">int</span><span class="o">[]</span> <span class="nf">twoSum</span><span class="o">(</span><span class="kt">int</span><span class="o">[]</span> <span class="n">nums</span><span class="o">,</span> <span class="kt">int</span> <span class="n">target</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Map</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">,</span> <span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">record</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nums</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">record</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">],</span> <span class="n">i</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="kt">int</span> <span class="n">diff</span><span class="o">;</span>
+        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">nums</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">target</span> <span class="o">-</span> <span class="n">nums</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">record</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">diff</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="n">record</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">diff</span><span class="o">)</span> <span class="o">!=</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="k">new</span> <span class="kt">int</span><span class="o">[]{</span><span class="n">i</span><span class="o">,</span> <span class="n">record</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">diff</span><span class="o">)};</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

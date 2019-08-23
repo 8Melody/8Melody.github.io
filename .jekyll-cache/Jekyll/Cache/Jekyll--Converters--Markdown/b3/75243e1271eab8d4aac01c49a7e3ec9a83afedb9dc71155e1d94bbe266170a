@@ -1,0 +1,687 @@
+I"?�<blockquote>
+  <p>本文记录<a href="https://www.youtube.com/watch?v=LmkKFCfmnhQ&amp;t=42s">Android Jetpack</a>中<code class="highlighter-rouge">Architecture</code>部分的<a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">ViewModel</a>以及工作原理。</p>
+</blockquote>
+
+<h1 id="android-jetpack系列之viewmodel">Android Jetpack系列之ViewModel</h1>
+
+<p><a href="https://www.youtube.com/watch?v=LmkKFCfmnhQ&amp;t=42s">Android Jetpack</a>是一系列助力更容易打造卓越 Android 应用的工具和组件。这些组件能帮助您遵循最佳实践、免除编写繁复的样板代码并简化复杂任务，从而使您可以专注于最核心的代码逻辑。</p>
+
+<p><code class="highlighter-rouge">Jetpack</code> 中的架构指南由 <code class="highlighter-rouge">Android</code> 开发中四个关键领域中的一系列代码库和工具提供支持。它们分别是<strong>基础（Foundation）、架构（Architecture）、行为（Behavior）和 UI</strong>。每个 <code class="highlighter-rouge">Jetpack</code> 组件均可单独采用，但它们依然可以流畅地协作。其中 <code class="highlighter-rouge">androidx.*</code> 库与 <code class="highlighter-rouge">Framework API</code>解耦，这能够提供向后兼容的同时，也能更频繁地更新。</p>
+
+<p>本文记录<a href="https://www.youtube.com/watch?v=LmkKFCfmnhQ&amp;t=42s">Android Jetpack</a>架构组件（Architecture）中的<a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">ViewModel</a>。</p>
+
+<h1 id="viewmodel概述">ViewModel概述</h1>
+<p><code class="highlighter-rouge">ViewModel</code>用来管理UI交互的数据，它保存的数据不会因为<code class="highlighter-rouge">Activity</code>配置改变而重新生成，比如屏幕旋转会重新触发<code class="highlighter-rouge">onCreate()</code>，但是<code class="highlighter-rouge">ViewModel</code>保存的数据不会丢失。</p>
+
+<p><code class="highlighter-rouge">Activity</code>和<code class="highlighter-rouge">Fragment</code>的生命周期是由<code class="highlighter-rouge">Framework</code>管理，<code class="highlighter-rouge">Framework</code>会在不在用户控制的情况下对<code class="highlighter-rouge">Activity</code>、<code class="highlighter-rouge">Fragment</code>进行销毁和重建。
+如果<code class="highlighter-rouge">Activity</code>、<code class="highlighter-rouge">Fragment</code>销毁或者重建之后，存储在当中的数据将会丢失，简单的数据可以通过<code class="highlighter-rouge">onSaveInstanceState()</code>跟<code class="highlighter-rouge">onCreate()</code>来恢复，但是大数据，比如位图，或者一个列表却不适用，现在这些数据可以保存到<code class="highlighter-rouge">ViewModel</code>中。</p>
+
+<p>下面是屏幕旋转之后的对比</p>
+
+<p><img src="http://petzbyixx.bkt.clouddn.com/viewmodel.gif" alt="效果图" /></p>
+
+<h1 id="实现viewmodel">实现ViewModel</h1>
+<p>实现<code class="highlighter-rouge">ViewModel</code>只需要继承<code class="highlighter-rouge">ViewModel</code>即可，如：</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">TextViewModel</span> <span class="p">:</span> <span class="n">ViewModel</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="py">text</span><span class="p">:</span> <span class="n">String</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+        <span class="k">get</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">field</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">field</span> <span class="p">=</span> <span class="n">asyncText</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="n">field</span>
+        <span class="p">}</span>
+
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">asyncText</span><span class="p">():</span> <span class="nc">String</span> <span class="p">=</span> <span class="s">"This is a Text"</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>然后再通过<code class="highlighter-rouge">ViewModelProviders</code>来获取：</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">ViewModelActivity</span> <span class="p">:</span> <span class="n">AppCompatActivity</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">(</span><span class="nv">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="n">layout</span><span class="p">.</span><span class="n">activity_view_model</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">textViewModel</span> <span class="p">=</span> <span class="n">ViewModelProviders</span><span class="p">.</span><span class="n">of</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+                <span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="n">TextViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+
+        <span class="kd">val</span> <span class="py">modelTv</span> <span class="p">=</span> <span class="n">findViewById</span><span class="p">&lt;</span><span class="n">TextView</span><span class="p">&gt;(</span><span class="n">R</span><span class="p">.</span><span class="n">id</span><span class="p">.</span><span class="n">tv_model</span><span class="p">)</span>
+        <span class="n">modelTv</span><span class="p">.</span><span class="n">text</span> <span class="p">=</span> <span class="n">textViewModel</span><span class="p">.</span><span class="n">text</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>如果<code class="highlighter-rouge">Activity</code>重新创建，获取到的<code class="highlighter-rouge">textViewModel</code>是同一个实例，当<code class="highlighter-rouge">Activity</code> finished之后会调用<code class="highlighter-rouge">ViewModel</code>的<code class="highlighter-rouge">onCleared</code>，用于回收资源,下文追踪源码分析。</p>
+
+<p><strong>注意：<code class="highlighter-rouge">ViewModel</code>不能有对<code class="highlighter-rouge">View</code>的引用，或者其他对<code class="highlighter-rouge">Activity Context</code>有引用的类。</strong></p>
+
+<p>如果需要用到<code class="highlighter-rouge">Application Context</code>可以选择继承<code class="highlighter-rouge">AndroidViewModel</code>。</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre><span class="k">public</span> <span class="kd">class</span> <span class="nc">AndroidViewModel</span> <span class="n">extends</span> <span class="n">ViewModel</span> <span class="p">{</span>
+    <span class="nd">@SuppressLint</span><span class="p">(</span><span class="s">"StaticFieldLeak"</span><span class="p">)</span>
+    <span class="k">private</span> <span class="n">Application</span> <span class="n">mApplication</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">AndroidViewModel</span><span class="p">(</span><span class="nd">@NonNull</span> <span class="n">Application</span> <span class="n">application</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">mApplication</span> <span class="p">=</span> <span class="n">application</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * Return the application.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="nd">@SuppressWarnings</span><span class="p">(</span><span class="s">"TypeParameterUnusedInFormals"</span><span class="p">)</span>
+    <span class="nd">@NonNull</span>
+    <span class="k">public</span> <span class="p">&lt;</span><span class="n">T</span> <span class="n">extends</span> <span class="n">Application</span><span class="p">&gt;</span> <span class="n">T</span> <span class="n">getApplication</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">//noinspection unchecked</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">mApplication</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="viewmodel的生命周期">ViewModel的生命周期</h1>
+
+<p><img src="https://developer.android.google.cn/images/topic/libraries/architecture/viewmodel-lifecycle.png" alt="ViewModel的生命周期" /></p>
+
+<p>通常情况下会在<code class="highlighter-rouge">Activity</code>的<code class="highlighter-rouge">onCreate()</code>方法获取<code class="highlighter-rouge">ViewModel</code>，此后无论<code class="highlighter-rouge">onCreate()</code>调用多少次，获取到的<code class="highlighter-rouge">ViewModel</code>都是同一个实例。</p>
+
+<h1 id="viewmodel源码分析">ViewModel源码分析</h1>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="k">public</span> <span class="k">abstract</span> <span class="kd">class</span> <span class="nc">ViewModel</span> <span class="p">{</span>
+    <span class="cm">/**</span><span class="err">
+</span><span class="cm">     * This method will be called when this ViewModel is no longer used and will be destroyed.</span><span class="err">
+</span><span class="cm">     * &lt;p&gt;</span><span class="err">
+</span><span class="cm">     * It is useful when ViewModel observes some data and you need to clear this subscription to</span><span class="err">
+</span><span class="cm">     * prevent a leak of this ViewModel.</span><span class="err">
+</span><span class="cm">     */</span>
+    <span class="nd">@SuppressWarnings</span><span class="p">(</span><span class="s">"WeakerAccess"</span><span class="p">)</span>
+    <span class="k">protected</span> <span class="n">void</span> <span class="n">onCleared</span><span class="p">()</span> <span class="p">{</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">ViewModel</code>是一个抽象类，中间只有一个可选择实现的方法<code class="highlighter-rouge">onCleared()</code>，该方法会在重复缓存当前<code class="highlighter-rouge">ViewModel</code>到<code class="highlighter-rouge">ViewModelStore</code>中或者<code class="highlighter-rouge">HolderFragment</code>的<code class="highlighter-rouge">onDestory()</code>被调用，用于回收资源。</p>
+
+<h1 id="viewmodelprovidersofxxxgetxxx源码分析">ViewModelProviders.of(xxx).get(xxx)源码分析</h1>
+<p>对于上文中出现的代码：</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kd">val</span> <span class="py">textViewModel</span> <span class="p">=</span> <span class="n">ViewModelProviders</span><span class="p">.</span><span class="n">of</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="k">get</span><span class="p">(</span><span class="n">TextViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">ViewModelProviders.of(this)</code>的操作：
+一共有4个重载方法</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+</pre></td><td class="rouge-code"><pre><span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Fragment</span> <span class="n">fragment</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span>
+                <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span>
+                        <span class="n">checkApplication</span><span class="o">(</span><span class="n">checkActivity</span><span class="o">(</span><span class="n">fragment</span><span class="o">)));</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">fragment</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+    
+<span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span>
+                <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span>
+                        <span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">));</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">activity</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+    
+<span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Fragment</span> <span class="n">fragment</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="nc">Factory</span> <span class="n">factory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">checkApplication</span><span class="o">(</span><span class="n">checkActivity</span><span class="o">(</span><span class="n">fragment</span><span class="o">));</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">fragment</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+    
+<span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">,</span>
+            <span class="nd">@NonNull</span> <span class="nc">Factory</span> <span class="n">factory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">);</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">activity</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>该方法必须在主线程中调用，前两个方法不需要提供<code class="highlighter-rouge">Factory</code>，会实现默认的factory。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>该方法会通过<code class="highlighter-rouge">AndroidViewModelFactory#getInstance()</code>返回一个<code class="highlighter-rouge">AndroidViewModelFactory</code>的单例，何为<code class="highlighter-rouge">AndroidViewModelFactory</code>？</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+</pre></td><td class="rouge-code"><pre> <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">AndroidViewModelFactory</span> <span class="kd">extends</span> <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">NewInstanceFactory</span> <span class="o">{</span>
+
+        <span class="kd">private</span> <span class="kd">static</span> <span class="nc">AndroidViewModelFactory</span> <span class="n">sInstance</span><span class="o">;</span>
+
+        <span class="cm">/**
+         * Retrieve a singleton instance of AndroidViewModelFactory.
+         *
+         * @param application an application to pass in {@link AndroidViewModel}
+         * @return A valid {@link AndroidViewModelFactory}
+         */</span>
+        <span class="kd">public</span> <span class="kd">static</span> <span class="nc">AndroidViewModelFactory</span> <span class="nf">getInstance</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Application</span> <span class="n">application</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">sInstance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">sInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">AndroidViewModelFactory</span><span class="o">(</span><span class="n">application</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="n">sInstance</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="kd">private</span> <span class="nc">Application</span> <span class="n">mApplication</span><span class="o">;</span>
+
+        <span class="cm">/**
+         * Creates a {@code AndroidViewModelFactory}
+         *
+         * @param application an application to pass in {@link AndroidViewModel}
+         */</span>
+        <span class="kd">public</span> <span class="nf">AndroidViewModelFactory</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Application</span> <span class="n">application</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">mApplication</span> <span class="o">=</span> <span class="n">application</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="nd">@NonNull</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="o">&lt;</span><span class="no">T</span> <span class="kd">extends</span> <span class="nc">ViewModel</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">create</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Class</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">modelClass</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="nc">AndroidViewModel</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">modelClass</span><span class="o">))</span> <span class="o">{</span>
+                <span class="c1">//noinspection TryWithIdenticalCatches</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="n">modelClass</span><span class="o">.</span><span class="na">getConstructor</span><span class="o">(</span><span class="nc">Application</span><span class="o">.</span><span class="na">class</span><span class="o">).</span><span class="na">newInstance</span><span class="o">(</span><span class="n">mApplication</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">NoSuchMethodException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">InstantiationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">InvocationTargetException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="n">modelClass</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">AndroidViewModelFactory</code>继承自<code class="highlighter-rouge">NewInstanceFactory</code>。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre> <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">NewInstanceFactory</span> <span class="kd">implements</span> <span class="nc">Factory</span> <span class="o">{</span>
+
+        <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">"ClassNewInstance"</span><span class="o">)</span>
+        <span class="nd">@NonNull</span>
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="o">&lt;</span><span class="no">T</span> <span class="kd">extends</span> <span class="nc">ViewModel</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">create</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Class</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">modelClass</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">//noinspection TryWithIdenticalCatches</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">modelClass</span><span class="o">.</span><span class="na">newInstance</span><span class="o">();</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">InstantiationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Cannot create an instance of "</span> <span class="o">+</span> <span class="n">modelClass</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>该类实现了<code class="highlighter-rouge">Factory</code>接口，该接口只有一个方法<code class="highlighter-rouge">create()</code>用于创建新的实例。
+回到方法</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>该方法通过<code class="highlighter-rouge">AndroidViewModelFactory.getInstance(checkApplication(activity))</code>返回<code class="highlighter-rouge">AndroidViewModelFactory</code>的单例。其中<code class="highlighter-rouge">checkApplication(activity)</code>用于返回<code class="highlighter-rouge">Activity/Fragment</code>绑定的<code class="highlighter-rouge">Application</code>，如果没有绑定<code class="highlighter-rouge">Application</code>则会抛出异常。</p>
+
+<p>再回到最初的<code class="highlighter-rouge">of</code>方法。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span> <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">));</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">activity</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="k">return</span> <span class="k">new</span> <span class="nc">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">activity</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>该句代码中的<code class="highlighter-rouge">ViewModelStores.of(activity)</code>会返回一个<code class="highlighter-rouge">ViewModelStore</code>，<strong>该类用于存储<code class="highlighter-rouge">ViewModel</code></strong>。
+<code class="highlighter-rouge">ViewModelStores.of(activity)</code>有两个重载方法。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre><span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelStore</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">activity</span> <span class="k">instanceof</span> <span class="nc">ViewModelStoreOwner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">((</span><span class="nc">ViewModelStoreOwner</span><span class="o">)</span> <span class="n">activity</span><span class="o">).</span><span class="na">getViewModelStore</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="nf">holderFragmentFor</span><span class="o">(</span><span class="n">activity</span><span class="o">).</span><span class="na">getViewModelStore</span><span class="o">();</span>
+    <span class="o">}</span>
+
+
+<span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelStore</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Fragment</span> <span class="n">fragment</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">fragment</span> <span class="k">instanceof</span> <span class="nc">ViewModelStoreOwner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">((</span><span class="nc">ViewModelStoreOwner</span><span class="o">)</span> <span class="n">fragment</span><span class="o">).</span><span class="na">getViewModelStore</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="nf">holderFragmentFor</span><span class="o">(</span><span class="n">fragment</span><span class="o">).</span><span class="na">getViewModelStore</span><span class="o">();</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>这两个构造函数除了入参不一样，其他基本是一样的，先判断<code class="highlighter-rouge">Activity/Fragment</code>是否实现了<code class="highlighter-rouge">ViewModelStoreOwner</code>接口，实现该接口要求实现<code class="highlighter-rouge">getViewModelStore()</code>方法并且返回一个<code class="highlighter-rouge">ViewStore</code>。如果没有实现该接口则会调用<code class="highlighter-rouge">holderFragmentFor(activity/fragment).getViewModelStore()</code>返回<code class="highlighter-rouge">ViewModelStore()</code>。</p>
+
+<p><code class="highlighter-rouge">holderFragmentFor(activity/fragment).getViewModelStore()</code>方法位于<code class="highlighter-rouge">HolderFragment</code>中。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre><span class="cm">/**
+     * @hide
+     */</span>
+    <span class="nd">@RestrictTo</span><span class="o">(</span><span class="nc">RestrictTo</span><span class="o">.</span><span class="na">Scope</span><span class="o">.</span><span class="na">LIBRARY_GROUP</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">HolderFragment</span> <span class="nf">holderFragmentFor</span><span class="o">(</span><span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">sHolderFragmentManager</span><span class="o">.</span><span class="na">holderFragmentFor</span><span class="o">(</span><span class="n">activity</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="cm">/**
+     * @hide
+     */</span>
+    <span class="nd">@RestrictTo</span><span class="o">(</span><span class="nc">RestrictTo</span><span class="o">.</span><span class="na">Scope</span><span class="o">.</span><span class="na">LIBRARY_GROUP</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">HolderFragment</span> <span class="nf">holderFragmentFor</span><span class="o">(</span><span class="nc">Fragment</span> <span class="n">fragment</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">sHolderFragmentManager</span><span class="o">.</span><span class="na">holderFragmentFor</span><span class="o">(</span><span class="n">fragment</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>两个方法会返回<code class="highlighter-rouge">HolderFragment</code>，<code class="highlighter-rouge">sHolderFragmentManager</code>是<code class="highlighter-rouge">HolderFragmentManager</code>用于管理<code class="highlighter-rouge">HolderFragment</code>，其中的<code class="highlighter-rouge">holderFragmentFor(Activity)</code>方法如下：</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="rouge-code"><pre><span class="nc">HolderFragment</span> <span class="nf">holderFragmentFor</span><span class="o">(</span><span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">FragmentManager</span> <span class="n">fm</span> <span class="o">=</span> <span class="n">activity</span><span class="o">.</span><span class="na">getSupportFragmentManager</span><span class="o">();</span>
+            <span class="c1">//通过HOLDER_TAG获取已经添加过的HolderFragment</span>
+            <span class="nc">HolderFragment</span> <span class="n">holder</span> <span class="o">=</span> <span class="n">findHolderFragment</span><span class="o">(</span><span class="n">fm</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">holder</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">holder</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="c1">//mNotCommittedActivityHolders是一个Map，用于存储HolderFragment，key为Activity</span>
+            <span class="n">holder</span> <span class="o">=</span> <span class="n">mNotCommittedActivityHolders</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">activity</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">holder</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">holder</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="c1">//用于判断是否注册ActivityLifeCycle回调，没有则注册，用于Activity销毁的时候移除对应的Activity以及触发对应ViewModel的onCleared()</span>
+            <span class="k">if</span> <span class="o">(!</span><span class="n">mActivityCallbacksIsAdded</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">mActivityCallbacksIsAdded</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+                <span class="n">activity</span><span class="o">.</span><span class="na">getApplication</span><span class="o">().</span><span class="na">registerActivityLifecycleCallbacks</span><span class="o">(</span><span class="n">mActivityCallbacks</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="c1">//创建新的HolderFragment并且为之设置TAG为HOLDER_TAG</span>
+            <span class="n">holder</span> <span class="o">=</span> <span class="n">createHolderFragment</span><span class="o">(</span><span class="n">fm</span><span class="o">);</span>
+            <span class="c1">//将创建的HolderFragment放进mNotCommittedActivityHolders用于下次直接get()</span>
+            <span class="n">mNotCommittedActivityHolders</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">activity</span><span class="o">,</span> <span class="n">holder</span><span class="o">);</span>
+            <span class="k">return</span> <span class="n">holder</span><span class="o">;</span>
+        <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>再看<code class="highlighter-rouge">holderFragmentFor(fragment).getViewModelStore()</code>就很清晰了：</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre>    <span class="kd">private</span> <span class="nc">ViewModelStore</span> <span class="n">mViewModelStore</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ViewModelStore</span><span class="o">();</span>
+    
+    <span class="kd">public</span> <span class="nf">HolderFragment</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">//当前Fragment绑定的Activity被recreate时，Fragment的onDestroy()和onCreate()不会调用</span>
+        <span class="n">setRetainInstance</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDestroy</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onDestroy</span><span class="o">();</span>
+        <span class="n">mViewModelStore</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@NonNull</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">ViewModelStore</span> <span class="nf">getViewModelStore</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">mViewModelStore</span><span class="o">;</span>
+    <span class="o">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>其实就是直接<code class="highlighter-rouge">new ViewModelStore()</code>了，何为<code class="highlighter-rouge">ViewModelStore</code>？</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ViewModelStore</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">HashMap</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">ViewModel</span><span class="o">&gt;</span> <span class="n">mMap</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
+
+    <span class="kd">final</span> <span class="kt">void</span> <span class="nf">put</span><span class="o">(</span><span class="nc">String</span> <span class="n">key</span><span class="o">,</span> <span class="nc">ViewModel</span> <span class="n">viewModel</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">ViewModel</span> <span class="n">oldViewModel</span> <span class="o">=</span> <span class="n">mMap</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">oldViewModel</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">oldViewModel</span><span class="o">.</span><span class="na">onCleared</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="n">mMap</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">viewModel</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="nc">ViewModel</span> <span class="nf">get</span><span class="o">(</span><span class="nc">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">mMap</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="cm">/**
+     *  Clears internal storage and notifies ViewModels that they are no longer used.
+     */</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">clear</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">for</span> <span class="o">(</span><span class="nc">ViewModel</span> <span class="n">vm</span> <span class="o">:</span> <span class="n">mMap</span><span class="o">.</span><span class="na">values</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">vm</span><span class="o">.</span><span class="na">onCleared</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="n">mMap</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>这个就很简单了。
+获取到了<code class="highlighter-rouge">ViewModelStore</code>，再回到最初的<code class="highlighter-rouge">ViewModelProviders.of()</code>方法。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">static</span> <span class="nc">ViewModelProvider</span> <span class="nf">of</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">FragmentActivity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span> <span class="n">factory</span> <span class="o">=</span>
+                <span class="nc">ViewModelProvider</span><span class="o">.</span><span class="na">AndroidViewModelFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span>
+                        <span class="n">checkApplication</span><span class="o">(</span><span class="n">activity</span><span class="o">));</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nc">ViewModelStores</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">activity</span><span class="o">),</span> <span class="n">factory</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>下面这句返回一个<code class="highlighter-rouge">ViewModelProvider</code>，该类没有父类，追踪源码可知。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre> <span class="kd">public</span> <span class="nf">ViewModelProvider</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">ViewModelStore</span> <span class="n">store</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="nc">Factory</span> <span class="n">factory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">mFactory</span> <span class="o">=</span> <span class="n">factory</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">mViewModelStore</span> <span class="o">=</span> <span class="n">store</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>只是设置了<code class="highlighter-rouge">mFactory</code>跟<code class="highlighter-rouge">ViewModelStore</code>，上文分析可知这两个参数的由来。</p>
+
+<p>再回到获取<code class="highlighter-rouge">ViewModel</code>方法中的<code class="highlighter-rouge">ViewModelProviders.of(this).get(TextViewModel::class.java)</code>
+分析<code class="highlighter-rouge">get()</code>，上文可知<code class="highlighter-rouge">of</code>返回的是<code class="highlighter-rouge">ViewModelProvider</code>，所以直接打开<code class="highlighter-rouge">ViewModelProvider#get()</code>方法。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>    <span class="nd">@NonNull</span>
+    <span class="kd">public</span> <span class="o">&lt;</span><span class="no">T</span> <span class="kd">extends</span> <span class="nc">ViewModel</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">get</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">Class</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">modelClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">String</span> <span class="n">canonicalName</span> <span class="o">=</span> <span class="n">modelClass</span><span class="o">.</span><span class="na">getCanonicalName</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">canonicalName</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Local and anonymous classes can not be ViewModels"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="nf">get</span><span class="o">(</span><span class="no">DEFAULT_KEY</span> <span class="o">+</span> <span class="s">":"</span> <span class="o">+</span> <span class="n">canonicalName</span><span class="o">,</span> <span class="n">modelClass</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>其中<code class="highlighter-rouge">canonicalName</code>作为类的唯一标识。DEFAULT_KEY为<code class="highlighter-rouge">android.arch.lifecycle.ViewModelProvider.DefaultKey</code>。点开重载方法<code class="highlighter-rouge">get(DEFAULT_KEY + ":" + canonicalName, modelClass);</code></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+</pre></td><td class="rouge-code"><pre><span class="nd">@NonNull</span>
+<span class="nd">@MainThread</span>
+<span class="kd">public</span> <span class="o">&lt;</span><span class="no">T</span> <span class="kd">extends</span> <span class="nc">ViewModel</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">get</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">String</span> <span class="n">key</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="nc">Class</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">modelClass</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//通过ViewModelStore来获取已存在的ViewModel</span>
+        <span class="nc">ViewModel</span> <span class="n">viewModel</span> <span class="o">=</span> <span class="n">mViewModelStore</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+        <span class="c1">//如果modelClass是上面viewModel的实例则直接返回</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">modelClass</span><span class="o">.</span><span class="na">isInstance</span><span class="o">(</span><span class="n">viewModel</span><span class="o">))</span> <span class="o">{</span>
+            <span class="c1">//noinspection unchecked</span>
+            <span class="k">return</span> <span class="o">(</span><span class="no">T</span><span class="o">)</span> <span class="n">viewModel</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="c1">//noinspection StatementWithEmptyBody</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">viewModel</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="c1">// TODO: log a warning.</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="c1">//通过Factory创建一个ViewModel，前文中的AndroidModelFacotry中的create()方法</span>
+        <span class="n">viewModel</span> <span class="o">=</span> <span class="n">mFactory</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="n">modelClass</span><span class="o">);</span>
+        <span class="c1">//将当前ViewModel存储到ViewModelStore中</span>
+        <span class="n">mViewModelStore</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">viewModel</span><span class="o">);</span>
+        <span class="c1">//noinspection unchecked</span>
+        <span class="k">return</span> <span class="o">(</span><span class="no">T</span><span class="o">)</span> <span class="n">viewModel</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>至此，<code class="highlighter-rouge">ViewModelProviders.of(xx).get(xxx)</code>分析完毕。</p>
+
+:ET

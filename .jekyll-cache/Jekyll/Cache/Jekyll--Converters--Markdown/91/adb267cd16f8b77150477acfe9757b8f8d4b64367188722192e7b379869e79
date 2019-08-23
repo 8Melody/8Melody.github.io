@@ -1,0 +1,4 @@
+I"K<blockquote>
+  <p>本文记录EventBus源码解析内容，版本为3.1.1，从几个核心方法依次入手，<code class="highlighter-rouge">register</code>、<code class="highlighter-rouge">post</code>、<code class="highlighter-rouge">postSticky</code>、<code class="highlighter-rouge">unregister</code>。</p>
+</blockquote>
+:ET

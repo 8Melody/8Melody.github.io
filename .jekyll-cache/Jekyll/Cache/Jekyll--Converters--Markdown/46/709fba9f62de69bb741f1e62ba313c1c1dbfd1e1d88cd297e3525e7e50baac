@@ -1,0 +1,197 @@
+I"�<blockquote>
+  <p>本文记录常用Git操作。</p>
+</blockquote>
+
+<h1 id="git常用操作汇总">git常用操作汇总</h1>
+
+<h2 id="创建git仓库">创建git仓库</h2>
+<blockquote>
+  <p>git init</p>
+</blockquote>
+
+<p>之后会出现</p>
+<blockquote>
+  <p>Initialized empty Git repository in C:/Users/xxx/.git/</p>
+</blockquote>
+
+<p>在当前目录会成功创建<code class="highlighter-rouge">.git</code>目录。</p>
+
+<h2 id="配置用户信息">配置用户信息</h2>
+<blockquote>
+  <p>git config –global user.email ‘xxx@xxx.com’ 
+git config –global user.name ‘xxx’</p>
+</blockquote>
+
+<h2 id="clone">clone</h2>
+<blockquote>
+  <p>git clone xxxx.git</p>
+</blockquote>
+
+<h2 id="提交">提交</h2>
+<blockquote>
+  <p>git add 文件名(如果添加所有修改的文件直接git add .)
+git commit -m ‘提交信息’</p>
+</blockquote>
+
+<h2 id="本地分支推送到远程分支">本地分支推送到远程分支</h2>
+<blockquote>
+  <p>git push origin 分支名称</p>
+</blockquote>
+
+<h2 id="暂存">暂存</h2>
+<blockquote>
+  <p>git stash</p>
+</blockquote>
+
+<h2 id="恢复暂存">恢复暂存</h2>
+<blockquote>
+  <p>git stash pop</p>
+</blockquote>
+
+<h2 id="查看本地分支">查看本地分支</h2>
+<blockquote>
+  <p>git branch</p>
+</blockquote>
+
+<h2 id="查看所有分支">查看所有分支</h2>
+<blockquote>
+  <p>git branch -a</p>
+</blockquote>
+
+<h2 id="创建本地分支">创建本地分支</h2>
+<blockquote>
+  <p>git branch 分支名</p>
+</blockquote>
+
+<h2 id="创建远程分支">创建远程分支</h2>
+<blockquote>
+  <p>git push origin 分支名</p>
+</blockquote>
+
+<h2 id="合并本地分支">合并本地分支</h2>
+<blockquote>
+  <p>git merge 分支名</p>
+</blockquote>
+
+<h2 id="合并远程分支">合并远程分支</h2>
+<p>切换到对应的本地分支，先合并本地分支，然后推送到远程分支</p>
+<blockquote>
+  <p>git checkout 本地分支
+git merge 需要合并的本地分支
+git push origin 远程分支</p>
+</blockquote>
+
+<h2 id="删除本地分支">删除本地分支</h2>
+<blockquote>
+  <p>git branch -d 分支名称</p>
+</blockquote>
+
+<h2 id="删除远程分支">删除远程分支</h2>
+<blockquote>
+  <p>git push origin –delete 分支名称</p>
+</blockquote>
+
+<h2 id="切换分支">切换分支</h2>
+<blockquote>
+  <p>git checkout 分支名</p>
+</blockquote>
+
+<h2 id="创建同时切换分支">创建同时切换分支</h2>
+<blockquote>
+  <p>git checkout -b bug-fix</p>
+</blockquote>
+
+<p>在当前分支上创建分支<code class="highlighter-rouge">bug-fix</code>，并且换到<code class="highlighter-rouge">bug-fix</code></p>
+
+<h2 id="查询所有tag">查询所有tag</h2>
+<blockquote>
+  <p>git tag</p>
+</blockquote>
+
+<h2 id="打tag">打tag</h2>
+<blockquote>
+  <p>git tag xx -m ‘xxx’
+git push origin –tags (推送到托管服务器)</p>
+</blockquote>
+
+<h2 id="删除本地tag">删除本地tag</h2>
+<blockquote>
+  <p>git tag -d tag名称</p>
+</blockquote>
+
+<h2 id="删除远程tag">删除远程tag</h2>
+<blockquote>
+  <p>git push origin –delete tag tag名称</p>
+</blockquote>
+
+<h2 id="拉取远程分支">拉取远程分支</h2>
+<blockquote>
+  <p>git pull origin v1.2.0</p>
+</blockquote>
+
+<p>将远程分支<code class="highlighter-rouge">v1.2.0</code>拉取到本地分支，在拉取之前如果本地有修改没有提交，可以先暂存<code class="highlighter-rouge">git stash</code>，拉取完毕之后<code class="highlighter-rouge">git stash pop</code>，如果出现冲突，可以输入<code class="highlighter-rouge">git mergetool</code>使用图形化解决冲突。</p>
+
+<h2 id="git-checkout-远程分支">git checkout 远程分支</h2>
+<blockquote>
+  <p>git checkout -b 本地分支名 origin/远程分支名</p>
+</blockquote>
+
+<p>可以在远程仓库基础上拉取指定分支。</p>
+
+<h2 id="git-fetch">git fetch</h2>
+<p><code class="highlighter-rouge">git fetch</code> 和 <code class="highlighter-rouge">git pull</code> 很像，但 <code class="highlighter-rouge">git fetch</code> 要柔和一点，<code class="highlighter-rouge">git pull</code> 会将远程的命令拉下来直接和本地的合并。</p>
+
+<p><code class="highlighter-rouge">git fetch</code> 会先获取信息，但不合并。</p>
+
+<blockquote>
+  <p>git fetch origin dev
+git log -p dev origin/dev(比较本地版本跟远程版本)
+git merge origin/dev(合并远程dev)</p>
+</blockquote>
+
+<p>或者：</p>
+<blockquote>
+  <p>git fetch origin dev:localBranch</p>
+</blockquote>
+
+<p>将远程<code class="highlighter-rouge">dev</code>分支拉取下来，并同步到 <code class="highlighter-rouge">localBranch</code> 分支上，如果 <code class="highlighter-rouge">localBranch</code> 分支不存在则创建，但不会切换。</p>
+
+<h2 id="版本回退">版本回退</h2>
+<blockquote>
+  <p>git reset –hard</p>
+</blockquote>
+
+<p>会回退到最近一次的提交（HEAD）</p>
+
+<p>如果想回退到指定的提交的话需要指定提交需要先查到提交的id</p>
+
+<blockquote>
+  <p>git log</p>
+</blockquote>
+
+<p>查询到commit的id</p>
+
+<blockquote>
+  <p>git reset –head 版本号</p>
+</blockquote>
+
+<p>这时候如果再push则会报错，因为本地的内容比远程内容版本低。
+这个时候可以选择强推，要负责强推的内容无问题，后果自负。</p>
+
+<blockquote>
+  <p>git push origin xxx -f</p>
+</blockquote>
+
+<h2 id="重新设置远程仓库">重新设置远程仓库</h2>
+
+<blockquote>
+  <p>git remote rm origin</p>
+</blockquote>
+
+<p>添加新的远程仓库</p>
+
+<blockquote>
+  <p>git remote add origin xxx.git</p>
+</blockquote>
+
+:ET

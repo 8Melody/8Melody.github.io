@@ -1,0 +1,1103 @@
+I"5<blockquote>
+  <p>本文记录<a href="https://www.youtube.com/watch?v=LmkKFCfmnhQ&amp;t=42s">Android Jetpack</a>中<code class="highlighter-rouge">Architecture</code>部分的<a href="https://developer.android.google.cn/topic/libraries/architecture/livedata">LiveData</a>以及工作原理。</p>
+</blockquote>
+
+<h1 id="android-jetpack系列之livedata">Android Jetpack系列之LiveData</h1>
+
+<h2 id="livedata概述">LiveData概述</h2>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/livedata">LiveData</a>是一个可观察数据的持有类，与常规的<code class="highlighter-rouge">Observable</code>不同，<code class="highlighter-rouge">LiveData</code>能够感知生命周期变化，他能与<code class="highlighter-rouge">Activity</code>或者<code class="highlighter-rouge">Fragment</code>、<code class="highlighter-rouge">Service</code>的生命周期关联，这能确保<code class="highlighter-rouge">LiveData</code>只在<code class="highlighter-rouge">Activity</code>或者<code class="highlighter-rouge">Fragment</code>生命周期处于活跃的时候刷新数据。</p>
+
+<p><code class="highlighter-rouge">LiveData</code>将一个由<code class="highlighter-rouge">Observer</code>类表示的观察者视为生命周期处于<code class="highlighter-rouge">STARTED</code>或者<code class="highlighter-rouge">RESUMED</code>状态。<code class="highlighter-rouge">LiveData</code>只会通知处于活跃状态的<code class="highlighter-rouge">Observer</code>更新数据，非活跃的<code class="highlighter-rouge">Observer</code>不会接收到通知。</p>
+
+<p>注册<code class="highlighter-rouge">Observer</code>观察<code class="highlighter-rouge">LiveData</code>需要一个<code class="highlighter-rouge">LifecyleOwner</code>，<code class="highlighter-rouge">LifecyleOwner</code>是一个接口，这个<code class="highlighter-rouge">LifecycleOwner</code>状态变更为<code class="highlighter-rouge">DESTROYED</code>时候会移除与<code class="highlighter-rouge">LifecycleOwner</code>对应的<code class="highlighter-rouge">Observer</code>，通常情况下<code class="highlighter-rouge">LifecycleOwner</code>是一个<code class="highlighter-rouge">Fragment</code>或者<code class="highlighter-rouge">Activity</code>，因为在新的<code class="highlighter-rouge">SupportActivity</code>、<code class="highlighter-rouge">Fragment</code>都实现了<code class="highlighter-rouge">LifeCycleOwner</code>接口。有了这种对应关系就不用再担心操作发生内存泄漏了。</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">MainActivity</span> <span class="p">:</span> <span class="n">AppCompatActivity</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">(</span><span class="nv">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="n">layout</span><span class="p">.</span><span class="n">activity_main</span><span class="p">)</span>
+        <span class="n">liveData</span><span class="p">.</span><span class="n">observe</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">Observer</span> <span class="p">{</span>
+            
+        <span class="p">})</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="使用livedata的优点">使用LiveData的优点</h2>
+
+<ul>
+  <li>
+    <p>确保UI更新符合数据状态
+  <code class="highlighter-rouge">LiveData</code>遵循观察者模式，<code class="highlighter-rouge">Observer</code>生命周期状态更改时<code class="highlighter-rouge">LiveData</code>会通知对应的<code class="highlighter-rouge">Observer</code>，每次<code class="highlighter-rouge">LiveData</code>数据更改时，对应的观察者可以在每次更新时更新UI。</p>
+  </li>
+  <li>
+    <p>没有内存泄漏
+<code class="highlighter-rouge">Observer</code>绑定的<code class="highlighter-rouge">LifecycleOwner</code>对象在<code class="highlighter-rouge">LifecycleOwner</code>销毁时自动解除绑定。</p>
+  </li>
+  <li>
+    <p>不会再有由于<code class="highlighter-rouge">Activity</code> <code class="highlighter-rouge">Stop</code>时引起的crash
+如果<code class="highlighter-rouge">Observer</code>的生命周期处于非活跃状态，例如<code class="highlighter-rouge">Activity</code>退到后台，那<code class="highlighter-rouge">Observer</code>不会再接收到<code class="highlighter-rouge">LiveData</code>的数据更新。</p>
+  </li>
+  <li>
+    <p>不需要手动处理生命周期
+UI组件只观察与其有关的数据，不会自动停止、恢复观察对应数据，<code class="highlighter-rouge">LiveData</code>自动管理这些，因为它会跟这些生命周期联动。</p>
+  </li>
+  <li>
+    <p>始终保持最新数据
+如果生命周期变为非活动状态，则会在再次变为活动状态时接收最新数据。例如，后台活动在返回前台后立即收到最新数据。</p>
+  </li>
+  <li>
+    <p>更好的处理配置更改
+如果<code class="highlighter-rouge">Activity</code>或者<code class="highlighter-rouge">Fragment</code>由于配置发生改变而重新<code class="highlighter-rouge">OnCreate</code>，如屏幕旋转，<code class="highlighter-rouge">Observer</code>接收到的始终是最新数据。</p>
+  </li>
+  <li>
+    <p>资源共享
+我们可以使用单例模式来扩展<code class="highlighter-rouge">LiveData</code>然后包装系统服务，然后在应用内这个<code class="highlighter-rouge">LiveData</code>是共享的。</p>
+  </li>
+</ul>
+
+<h2 id="使用livedata">使用LiveData</h2>
+
+<h3 id="创建livedata对象">创建LiveData对象</h3>
+<p><code class="highlighter-rouge">LiveData</code>是一个包装，真正需要的是其包装的数据，通常情况下<code class="highlighter-rouge">LiveData</code>与<code class="highlighter-rouge">ViewModel</code>一起使用。</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">NameViewModel</span> <span class="p">:</span> <span class="n">ViewModel</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="py">names</span><span class="p">:</span> <span class="n">MutableLiveData</span><span class="p">&lt;</span><span class="n">List</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;&gt;?</span> <span class="p">=</span> <span class="k">null</span>
+    <span class="k">private</span> <span class="k">set</span>
+    <span class="k">get</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">field</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">field</span> <span class="p">=</span> <span class="n">MutableLiveData</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">field</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="观察livedata对象">观察LiveData对象</h3>
+<p>在大多数情况，在<code class="highlighter-rouge">onCreate</code>中观察<code class="highlighter-rouge">LiveData</code>是最好的，因为避免了<code class="highlighter-rouge">onResume</code>的重复调用，同时确保<code class="highlighter-rouge">Activity</code>或者<code class="highlighter-rouge">Fragment</code>能在处于活跃状态时立即显示数据，只要应用组件处理<code class="highlighter-rouge">STARTED</code>状态，它就会从<code class="highlighter-rouge">LiveData</code>观察的对象中获取最近值。
+此外，<code class="highlighter-rouge">LiveData</code>只有在数据更改，并且只有处于活跃的<code class="highlighter-rouge">Observer</code>才能接收到更新。不过有一个例外，当<code class="highlighter-rouge">Observer</code>从非活跃状态变更改活跃状态时也会接受到更新。</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">MainActivity</span> <span class="p">:</span> <span class="n">AppCompatActivity</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">(</span><span class="nv">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="n">layout</span><span class="p">.</span><span class="n">activity_main</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">mNameViewModel</span> <span class="p">=</span> <span class="n">ViewModelProviders</span><span class="p">.</span><span class="n">of</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+                <span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="n">NameViewModel</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+
+        <span class="kd">val</span> <span class="py">namesTv</span> <span class="p">=</span> <span class="n">findViewById</span><span class="p">&lt;</span><span class="n">TextView</span><span class="p">&gt;(</span><span class="n">R</span><span class="p">.</span><span class="n">id</span><span class="p">.</span><span class="n">tv_names</span><span class="p">)</span>
+        <span class="n">mNameViewModel</span><span class="p">.</span><span class="n">names</span><span class="o">?.</span><span class="n">observe</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">Observer</span> <span class="p">{</span>
+            <span class="n">namesTv</span><span class="p">.</span><span class="n">text</span> <span class="p">=</span> <span class="n">it</span><span class="p">.</span><span class="n">toString</span><span class="p">()</span>
+        <span class="p">})</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="更新livedata对象">更新LiveData对象</h3>
+<p><code class="highlighter-rouge">LiveData</code>没有公开的方法更新持有的数据，只有<a href="https://developer.android.google.cn/reference/android/arch/lifecycle/MutableLiveData">MutableLiveData</a>提供了<code class="highlighter-rouge">setValue(T)</code>和<code class="highlighter-rouge">postValue(T)</code>用于更新持有的数据，<code class="highlighter-rouge">setValue(T)</code>必须在主线程中调用，而<code class="highlighter-rouge">postValue(T)</code>可以在子线程中调用，通常<code class="highlighter-rouge">MutableLiveData</code>用于<code class="highlighter-rouge">ViewModel</code>然后将<code class="highlighter-rouge">ViewModel</code>唯一的不可变<code class="highlighter-rouge">LiveData</code>对象暴露给观察者。</p>
+
+<p>更新<code class="highlighter-rouge">LiveData</code>中的对象的值。</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre> <span class="n">findViewById</span><span class="p">&lt;</span><span class="n">Button</span><span class="p">&gt;(</span><span class="n">R</span><span class="p">.</span><span class="n">id</span><span class="p">.</span><span class="n">btn_update</span><span class="p">).</span><span class="n">apply</span> <span class="p">{</span>
+            <span class="n">setOnClickListener</span> <span class="p">{</span>
+                <span class="n">mNameViewModel</span><span class="p">.</span><span class="n">names</span><span class="o">?.</span><span class="n">value</span> <span class="p">=</span> <span class="n">ArrayList</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;().</span><span class="n">apply</span> <span class="p">{</span>
+                    <span class="n">add</span><span class="p">(</span><span class="s">"Anna"</span><span class="p">)</span>
+                    <span class="n">add</span><span class="p">(</span><span class="s">"Bruce"</span><span class="p">)</span>
+                    <span class="n">add</span><span class="p">(</span><span class="s">"qfxl"</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>调用<code class="highlighter-rouge">setValue(T)</code>会回调观察者的<code class="highlighter-rouge">onChanged(T)</code>方法。</p>
+
+<h3 id="扩展livedata">扩展LiveData</h3>
+<p><code class="highlighter-rouge">LiveData</code>可以看做一个观察者，如果观察者的状态为<code class="highlighter-rouge">STARTED</code>或者<code class="highlighter-rouge">RESUMED</code>的时候可以认为<code class="highlighter-rouge">LiveData</code>正处于活跃的状态。
+下面是一个模拟股票刷新的实例：</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">StockLiveData</span> <span class="p">:</span> <span class="n">LiveData</span><span class="p">&lt;</span><span class="n">BigDecimal</span><span class="p">&gt;()</span> <span class="p">{</span>
+
+    <span class="k">private</span> <span class="kd">object</span> <span class="nc">Holder</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">INSTANCE</span> <span class="p">=</span> <span class="n">StockLiveData</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+        <span class="k">fun</span> <span class="nf">get</span><span class="p">():</span> <span class="nc">StockLiveData</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="n">Holder</span><span class="p">.</span><span class="n">INSTANCE</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">dispatcherHandler</span> <span class="p">=</span> <span class="n">Handler</span><span class="p">(</span><span class="n">Looper</span><span class="p">.</span><span class="n">getMainLooper</span><span class="p">())</span>
+
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">updateRunnable</span> <span class="p">=</span> <span class="n">Runnable</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="p">=</span> <span class="n">BigDecimal</span><span class="p">.</span><span class="n">valueOf</span><span class="p">(</span><span class="n">Random</span><span class="p">().</span><span class="n">nextInt</span><span class="p">(</span><span class="m">2500</span><span class="p">).</span><span class="n">toLong</span><span class="p">())</span>
+        <span class="n">updateStockData</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onActive</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">updateStockData</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onInactive</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">dispatcherHandler</span><span class="p">.</span><span class="n">removeCallbacks</span><span class="p">(</span><span class="n">updateRunnable</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">private</span> <span class="k">fun</span> <span class="nf">updateStockData</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">dispatcherHandler</span><span class="p">.</span><span class="n">postDelayed</span><span class="p">(</span><span class="n">updateRunnable</span><span class="p">,</span> <span class="m">1000</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>使用：</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">StockActivity</span> <span class="p">:</span> <span class="n">AppCompatActivity</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">onCreate</span><span class="p">(</span><span class="nv">savedInstanceState</span><span class="p">:</span> <span class="nc">Bundle</span><span class="p">?)</span> <span class="p">{</span>
+        <span class="k">super</span><span class="p">.</span><span class="n">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
+        <span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="n">layout</span><span class="p">.</span><span class="n">activity_stock</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">stockTv</span> <span class="p">=</span> <span class="n">findViewById</span><span class="p">&lt;</span><span class="n">TextView</span><span class="p">&gt;(</span><span class="n">R</span><span class="p">.</span><span class="n">id</span><span class="p">.</span><span class="n">tv_stock</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">liveData</span> <span class="p">=</span> <span class="n">StockLiveData</span><span class="p">.</span><span class="k">get</span><span class="p">()</span>
+        <span class="n">liveData</span><span class="p">.</span><span class="n">observe</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">Observer</span> <span class="p">{</span>
+            <span class="n">stockTv</span><span class="p">.</span><span class="n">text</span> <span class="p">=</span> <span class="s">"上证指数 $it"</span>
+        <span class="p">})</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>在<code class="highlighter-rouge">Activity</code>不可见的时候自动解除绑定关系，在重新可见的时候会重新绑定。
+//TODO 效果图</p>
+
+<p>在上述示例中实现了几个比较重要的方法：</p>
+
+<ul>
+  <li><code class="highlighter-rouge">onActive</code>方法当<code class="highlighter-rouge">LiveData</code>有观察者的时候，可以在这个方法进行数据更新操作。</li>
+  <li><code class="highlighter-rouge">onInActive</code>方法当<code class="highlighter-rouge">LiveData</code>观察者从N-0的时候调用，就是当<code class="highlighter-rouge">LiveData</code>没有观察者的时候会被调用。</li>
+  <li><code class="highlighter-rouge">setValue(T)</code>用于更新<code class="highlighter-rouge">LiveData</code>持有的对象数据。</li>
+</ul>
+
+<h3 id="转换livedata">转换LiveData</h3>
+<p>有时候我们需要将<code class="highlighter-rouge">LiveData</code>持有的对象进行转换，比如<code class="highlighter-rouge">LiveData</code>原先持有的是一个<code class="highlighter-rouge">User</code>但是我想要的只有其中的<code class="highlighter-rouge">name</code>属性，这样就可以用到<code class="highlighter-rouge">Lifecycle</code>中提供的<a href="https://developer.android.google.cn/reference/android/arch/lifecycle/Transformations">Transformations</a>。</p>
+
+<p><code class="highlighter-rouge">Transformations.map()</code></p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kd">val</span> <span class="py">userLiveData</span> <span class="p">=</span> <span class="n">UserLiveData</span><span class="p">()</span>
+<span class="n">Transformations</span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="n">userLiveData</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">it</span><span class="p">.</span><span class="n">name</span>
+<span class="p">}.</span><span class="n">observe</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">Observer</span> <span class="p">{</span>
+    <span class="n">stockTv</span><span class="p">.</span><span class="n">text</span> <span class="p">=</span> <span class="n">it</span>
+<span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">Transformations.switchMap()</code>
+类似于<code class="highlighter-rouge">map()</code>但是需要返回一个<code class="highlighter-rouge">LiveData</code></p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">private</span> <span class="k">fun</span> <span class="nf">getUser</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="nc">String</span><span class="p">):</span> <span class="nc">LiveData</span><span class="p">&lt;</span><span class="nc">User</span><span class="p">&gt;</span> <span class="p">{</span>
+  <span class="o">..</span><span class="p">.</span>
+<span class="p">}</span>
+<span class="kd">val</span> <span class="py">userId</span><span class="p">:</span> <span class="n">LiveData</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span> <span class="p">=</span> <span class="o">..</span><span class="p">.</span>
+<span class="kd">val</span> <span class="py">user</span> <span class="p">=</span> <span class="n">Transformations</span><span class="p">.</span><span class="n">switchMap</span><span class="p">(</span><span class="n">userId</span><span class="p">)</span> <span class="p">{</span> <span class="n">id</span> <span class="p">-&gt;</span> <span class="n">getUser</span><span class="p">(</span><span class="n">id</span><span class="p">)</span> <span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>以上为<code class="highlighter-rouge">LiveData</code>的基本用法。</p>
+
+<h2 id="livedata源码解析">LiveData源码解析</h2>
+<p>从<code class="highlighter-rouge">LiveData</code>的<code class="highlighter-rouge">Observe</code>方法入手，这是<code class="highlighter-rouge">LiveData</code>跟<code class="highlighter-rouge">Observer</code>的关联入口。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>  <span class="nd">@MainThread</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">observe</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">LifecycleOwner</span> <span class="n">owner</span><span class="o">,</span> <span class="nd">@NonNull</span> <span class="nc">Observer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">observer</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">owner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">getCurrentState</span><span class="o">()</span> <span class="o">==</span> <span class="no">DESTROYED</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// ignore</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="nc">LifecycleBoundObserver</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">LifecycleBoundObserver</span><span class="o">(</span><span class="n">owner</span><span class="o">,</span> <span class="n">observer</span><span class="o">);</span>
+        <span class="nc">ObserverWrapper</span> <span class="n">existing</span> <span class="o">=</span> <span class="n">mObservers</span><span class="o">.</span><span class="na">putIfAbsent</span><span class="o">(</span><span class="n">observer</span><span class="o">,</span> <span class="n">wrapper</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">existing</span><span class="o">.</span><span class="na">isAttachedTo</span><span class="o">(</span><span class="n">owner</span><span class="o">))</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Cannot add the same observer"</span>
+                    <span class="o">+</span> <span class="s">" with different lifecycles"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">owner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">addObserver</span><span class="o">(</span><span class="n">wrapper</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">LiveData#observe()</code>第一句代码。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre> <span class="k">if</span> <span class="o">(</span><span class="n">owner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">getCurrentState</span><span class="o">()</span> <span class="o">==</span> <span class="no">DESTROYED</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// ignore</span>
+        <span class="k">return</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">owner</code>为<code class="highlighter-rouge">LifecycleOwner</code>，<code class="highlighter-rouge">owner.getLifecycle()</code>获取到的是<code class="highlighter-rouge">Lifecycle</code>，<code class="highlighter-rouge">LifecycleOwner</code>是一个接口。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">LifecycleOwner</span> <span class="o">{</span>
+    <span class="cm">/**
+     * Returns the Lifecycle of the provider.
+     *
+     * @return The lifecycle of the provider.
+     */</span>
+    <span class="nd">@NonNull</span>
+    <span class="nc">Lifecycle</span> <span class="nf">getLifecycle</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Lifecycle</code>是一个抽象类，它只有一个已知子类<code class="highlighter-rouge">LifecycleRegistry</code>。</p>
+
+<p><code class="highlighter-rouge">getLifecycle().getCurrentState()</code>返回的是一个枚举值，它定义在<code class="highlighter-rouge">Lifecycle</code>中，每个枚举的意思都有详细的英文注释文档。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+</pre></td><td class="rouge-code"><pre>  <span class="kd">public</span> <span class="kd">enum</span> <span class="nc">State</span> <span class="o">{</span>
+        <span class="cm">/**
+         * Destroyed state for a LifecycleOwner. After this event, this Lifecycle will not dispatch
+         * any more events. For instance, for an {@link android.app.Activity}, this state is reached
+         * &lt;b&gt;right before&lt;/b&gt; Activity's {@link android.app.Activity#onDestroy() onDestroy} call.
+         */</span>
+        <span class="no">DESTROYED</span><span class="o">,</span>
+
+        <span class="cm">/**
+         * Initialized state for a LifecycleOwner. For an {@link android.app.Activity}, this is
+         * the state when it is constructed but has not received
+         * {@link android.app.Activity#onCreate(android.os.Bundle) onCreate} yet.
+         */</span>
+        <span class="no">INITIALIZED</span><span class="o">,</span>
+
+        <span class="cm">/**
+         * Created state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * is reached in two cases:
+         * &lt;ul&gt;
+         *     &lt;li&gt;after {@link android.app.Activity#onCreate(android.os.Bundle) onCreate} call;
+         *     &lt;li&gt;&lt;b&gt;right before&lt;/b&gt; {@link android.app.Activity#onStop() onStop} call.
+         * &lt;/ul&gt;
+         */</span>
+        <span class="no">CREATED</span><span class="o">,</span>
+
+        <span class="cm">/**
+         * Started state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * is reached in two cases:
+         * &lt;ul&gt;
+         *     &lt;li&gt;after {@link android.app.Activity#onStart() onStart} call;
+         *     &lt;li&gt;&lt;b&gt;right before&lt;/b&gt; {@link android.app.Activity#onPause() onPause} call.
+         * &lt;/ul&gt;
+         */</span>
+        <span class="no">STARTED</span><span class="o">,</span>
+
+        <span class="cm">/**
+         * Resumed state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * is reached after {@link android.app.Activity#onResume() onResume} is called.
+         */</span>
+        <span class="no">RESUMED</span><span class="o">;</span>
+
+        <span class="cm">/**
+         * Compares if this State is greater or equal to the given {@code state}.
+         *
+         * @param state State to compare with
+         * @return true if this State is greater or equal to the given {@code state}
+         */</span>
+        <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isAtLeast</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">State</span> <span class="n">state</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="nf">compareTo</span><span class="o">(</span><span class="n">state</span><span class="o">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">owner.getLifecycle().getCurrentState()</code>这句代码需要到<code class="highlighter-rouge">LifecycleOwner</code>实现类中去找对应方法，<code class="highlighter-rouge">LifecycleOwner</code>这个接口在系统中的<code class="highlighter-rouge">SupportActivity</code>、<code class="highlighter-rouge">Fragment</code>都有实现，这就是为什么在<code class="highlighter-rouge">Activity/Fragment</code>中调用<code class="highlighter-rouge">LiveData#Observe()</code>方法中可以传入<code class="highlighter-rouge">this</code>。
+以<code class="highlighter-rouge">SupportActivity</code>为例，它是<code class="highlighter-rouge">Activity</code>的直接子类，并且实现了<code class="highlighter-rouge">LifecycleOwner</code>。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">SupportActivity</span> <span class="kd">extends</span> <span class="nc">Activity</span> <span class="kd">implements</span> <span class="nc">LifecycleOwner</span> <span class="o">{</span>
+    <span class="n">xxx</span>
+    <span class="kd">private</span> <span class="nc">LifecycleRegistry</span> <span class="n">mLifecycleRegistry</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">LifecycleRegistry</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="n">xxx</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">Lifecycle</span> <span class="nf">getLifecycle</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">mLifecycleRegistry</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="n">xxx</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">owner.getLifecycle().getCurrentState()</code>最终调用的地方为<code class="highlighter-rouge">LifecycleRegistry#getCurrentState()</code>，</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LifecycleRegistry</span> <span class="kd">extends</span> <span class="nc">Lifecycle</span> <span class="o">{</span>
+    <span class="n">xxx</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">WeakReference</span><span class="o">&lt;</span><span class="nc">LifecycleOwner</span><span class="o">&gt;</span> <span class="n">mLifecycleOwner</span><span class="o">;</span>
+      <span class="cm">/**
+     * Current state
+     */</span>
+    <span class="kd">private</span> <span class="nc">State</span> <span class="n">mState</span><span class="o">;</span>
+    <span class="n">xx</span>
+    <span class="kd">public</span> <span class="nf">LifecycleRegistry</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">LifecycleOwner</span> <span class="n">provider</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">mLifecycleOwner</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">WeakReference</span><span class="o">&lt;&gt;(</span><span class="n">provider</span><span class="o">);</span>
+        <span class="n">mState</span> <span class="o">=</span> <span class="no">INITIALIZED</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">State</span> <span class="nf">getCurrentState</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">mState</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>第一次调用<code class="highlighter-rouge">getCurrentState</code>为<code class="highlighter-rouge">INITIALIZED</code>。</p>
+
+<p><code class="highlighter-rouge">LiveData#observe()</code>第二句代码。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="nc">LifecycleBoundObserver</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">LifecycleBoundObserver</span><span class="o">(</span><span class="n">owner</span><span class="o">,</span> <span class="n">observer</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">LifecycleBoundObserver</code>是<code class="highlighter-rouge">ObserverWrapper</code>的子类，何为<code class="highlighter-rouge">ObserverWrapper</code>？顾名思义是<code class="highlighter-rouge">Observer</code>的包装类。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+</pre></td><td class="rouge-code"><pre> <span class="kd">private</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">ObserverWrapper</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="nc">Observer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">mObserver</span><span class="o">;</span>
+        <span class="kt">boolean</span> <span class="n">mActive</span><span class="o">;</span>
+        <span class="kt">int</span> <span class="n">mLastVersion</span> <span class="o">=</span> <span class="no">START_VERSION</span><span class="o">;</span>
+
+        <span class="nc">ObserverWrapper</span><span class="o">(</span><span class="nc">Observer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">observer</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">mObserver</span> <span class="o">=</span> <span class="n">observer</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="cm">/**
+         * 需要实现的方法，是否是活跃状态。
+         */</span>
+        <span class="kd">abstract</span> <span class="kt">boolean</span> <span class="nf">shouldBeActive</span><span class="o">();</span>
+
+        <span class="kt">boolean</span> <span class="nf">isAttachedTo</span><span class="o">(</span><span class="nc">LifecycleOwner</span> <span class="n">owner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="kt">void</span> <span class="nf">detachObserver</span><span class="o">()</span> <span class="o">{</span>
+        <span class="o">}</span>
+        <span class="cm">/**
+         * 状态更改
+         */</span>
+        <span class="kt">void</span> <span class="nf">activeStateChanged</span><span class="o">(</span><span class="kt">boolean</span> <span class="n">newActive</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">newActive</span> <span class="o">==</span> <span class="n">mActive</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">return</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="c1">// immediately set active state, so we'd never dispatch anything to inactive</span>
+            <span class="c1">// owner</span>
+            <span class="n">mActive</span> <span class="o">=</span> <span class="n">newActive</span><span class="o">;</span>
+            <span class="kt">boolean</span> <span class="n">wasInactive</span> <span class="o">=</span> <span class="nc">LiveData</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">mActiveCount</span> <span class="o">==</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="nc">LiveData</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">mActiveCount</span> <span class="o">+=</span> <span class="n">mActive</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">wasInactive</span> <span class="o">&amp;&amp;</span> <span class="n">mActive</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">onActive</span><span class="o">();</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="nc">LiveData</span><span class="o">.</span><span class="na">this</span><span class="o">.</span><span class="na">mActiveCount</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">mActive</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">onInactive</span><span class="o">();</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">mActive</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">dispatchingValue</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>点开<code class="highlighter-rouge">LifecycleBoundObserver</code>，它实现了<code class="highlighter-rouge">GenericLifecycleObserver</code>接口，这个在分析<code class="highlighter-rouge">LifecycleRegistry#addObserver(LifecycleObserver)</code>会用到。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+</pre></td><td class="rouge-code"><pre> <span class="kd">class</span> <span class="nc">LifecycleBoundObserver</span> <span class="kd">extends</span> <span class="nc">ObserverWrapper</span> <span class="kd">implements</span> <span class="nc">GenericLifecycleObserver</span> <span class="o">{</span>
+        <span class="nd">@NonNull</span> <span class="kd">final</span> <span class="nc">LifecycleOwner</span> <span class="n">mOwner</span><span class="o">;</span>
+
+        <span class="nc">LifecycleBoundObserver</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">LifecycleOwner</span> <span class="n">owner</span><span class="o">,</span> <span class="nc">Observer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">observer</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kd">super</span><span class="o">(</span><span class="n">observer</span><span class="o">);</span>
+            <span class="n">mOwner</span> <span class="o">=</span> <span class="n">owner</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="nd">@Override</span>
+        <span class="kt">boolean</span> <span class="nf">shouldBeActive</span><span class="o">()</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">mOwner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">getCurrentState</span><span class="o">().</span><span class="na">isAtLeast</span><span class="o">(</span><span class="no">STARTED</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="nd">@Override</span>
+        <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onStateChanged</span><span class="o">(</span><span class="nc">LifecycleOwner</span> <span class="n">source</span><span class="o">,</span> <span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">mOwner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">getCurrentState</span><span class="o">()</span> <span class="o">==</span> <span class="no">DESTROYED</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">removeObserver</span><span class="o">(</span><span class="n">mObserver</span><span class="o">);</span>
+                <span class="k">return</span><span class="o">;</span>
+            <span class="o">}</span>
+            <span class="n">activeStateChanged</span><span class="o">(</span><span class="n">shouldBeActive</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="nd">@Override</span>
+        <span class="kt">boolean</span> <span class="nf">isAttachedTo</span><span class="o">(</span><span class="nc">LifecycleOwner</span> <span class="n">owner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">mOwner</span> <span class="o">==</span> <span class="n">owner</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="nd">@Override</span>
+        <span class="kt">void</span> <span class="nf">detachObserver</span><span class="o">()</span> <span class="o">{</span>
+            <span class="n">mOwner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">removeObserver</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">LiveData#observe()</code>第三句代码。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>  <span class="c1">// private SafeIterableMap&lt;Observer&lt;T&gt;, ObserverWrapper&gt; mObservers =</span>
+  <span class="c1">//          new SafeIterableMap&lt;&gt;();</span>
+  <span class="c1">//如果存在则直接返回，否则put到mObservers中。</span>
+    <span class="nc">ObserverWrapper</span> <span class="n">existing</span> <span class="o">=</span> <span class="n">mObservers</span><span class="o">.</span><span class="na">putIfAbsent</span><span class="o">(</span><span class="n">observer</span><span class="o">,</span> <span class="n">wrapper</span><span class="o">);</span>
+    <span class="c1">//如果当前的ObserverWrapper不为空，并且当前传入的LifecycleOwner与ObserverWrapper原先的LifecycleOwner不一致的时候抛出异常。</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">existing</span><span class="o">.</span><span class="na">isAttachedTo</span><span class="o">(</span><span class="n">owner</span><span class="o">))</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Cannot add the same observer"</span>
+        <span class="o">+</span> <span class="s">" with different lifecycles"</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="c1">//如果当前的ObserverWrapper不为空，则不进行任何操作。</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">existing</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">LiveData#observe()</code>最后一句代码</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre> <span class="n">owner</span><span class="o">.</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">addObserver</span><span class="o">(</span><span class="n">wrapper</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>经过了上面分析，可知这句代码最后调用的地方为<code class="highlighter-rouge">LifecycleRegistry#addObserver(LifecycleObserver)</code>。这个方法有一堆计算State方法以及EVENT转换STATE的操作，虽然多但是不复杂。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="rouge-code"><pre>    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addObserver</span><span class="o">(</span><span class="nd">@NonNull</span> <span class="nc">LifecycleObserver</span> <span class="n">observer</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">State</span> <span class="n">initialState</span> <span class="o">=</span> <span class="n">mState</span> <span class="o">==</span> <span class="no">DESTROYED</span> <span class="o">?</span> <span class="no">DESTROYED</span> <span class="o">:</span> <span class="no">INITIALIZED</span><span class="o">;</span>
+        <span class="nc">ObserverWithState</span> <span class="n">statefulObserver</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ObserverWithState</span><span class="o">(</span><span class="n">observer</span><span class="o">,</span> <span class="n">initialState</span><span class="o">);</span>
+        <span class="nc">ObserverWithState</span> <span class="n">previous</span> <span class="o">=</span> <span class="n">mObserverMap</span><span class="o">.</span><span class="na">putIfAbsent</span><span class="o">(</span><span class="n">observer</span><span class="o">,</span> <span class="n">statefulObserver</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">previous</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="nc">LifecycleOwner</span> <span class="n">lifecycleOwner</span> <span class="o">=</span> <span class="n">mLifecycleOwner</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">lifecycleOwner</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// it is null we should be destroyed. Fallback quickly</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="kt">boolean</span> <span class="n">isReentrance</span> <span class="o">=</span> <span class="n">mAddingObserverCounter</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">mHandlingEvent</span><span class="o">;</span>
+        <span class="nc">State</span> <span class="n">targetState</span> <span class="o">=</span> <span class="n">calculateTargetState</span><span class="o">(</span><span class="n">observer</span><span class="o">);</span>
+        <span class="n">mAddingObserverCounter</span><span class="o">++;</span>
+        <span class="k">while</span> <span class="o">((</span><span class="n">statefulObserver</span><span class="o">.</span><span class="na">mState</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">targetState</span><span class="o">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="o">&amp;&amp;</span> <span class="n">mObserverMap</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">observer</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="n">pushParentState</span><span class="o">(</span><span class="n">statefulObserver</span><span class="o">.</span><span class="na">mState</span><span class="o">);</span>
+<span class="c1">//最重要的是这句，这里回将Event回调出去 statefulObserver.dispatchEvent(lifecycleOwner, upEvent(statefulObserver.mState));</span>
+            <span class="n">popParentState</span><span class="o">();</span>
+            <span class="c1">// mState / subling may have been changed recalculate</span>
+            <span class="n">targetState</span> <span class="o">=</span> <span class="n">calculateTargetState</span><span class="o">(</span><span class="n">observer</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="k">if</span> <span class="o">(!</span><span class="n">isReentrance</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// we do sync only on the top level.</span>
+            <span class="n">sync</span><span class="o">();</span>
+        <span class="o">}</span>
+        <span class="n">mAddingObserverCounter</span><span class="o">--;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>上面代码中出现了一个<code class="highlighter-rouge">ObserverWithState</code>。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td><td class="rouge-code"><pre> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ObserverWithState</span> <span class="o">{</span>
+        <span class="nc">State</span> <span class="n">mState</span><span class="o">;</span>
+        <span class="nc">GenericLifecycleObserver</span> <span class="n">mLifecycleObserver</span><span class="o">;</span>
+
+        <span class="nc">ObserverWithState</span><span class="o">(</span><span class="nc">LifecycleObserver</span> <span class="n">observer</span><span class="o">,</span> <span class="nc">State</span> <span class="n">initialState</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">mLifecycleObserver</span> <span class="o">=</span> <span class="nc">Lifecycling</span><span class="o">.</span><span class="na">getCallback</span><span class="o">(</span><span class="n">observer</span><span class="o">);</span>
+            <span class="n">mState</span> <span class="o">=</span> <span class="n">initialState</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="kt">void</span> <span class="nf">dispatchEvent</span><span class="o">(</span><span class="nc">LifecycleOwner</span> <span class="n">owner</span><span class="o">,</span> <span class="nc">Event</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//根据Event返回State，Event也是一个枚举，其中有ON_CREATE,ON_START,ON_RESUME,ON_PAUSE,ON_STOP,ON_DESTROY,ON_ANY</span>
+            <span class="nc">State</span> <span class="n">newState</span> <span class="o">=</span> <span class="n">getStateAfter</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+            <span class="c1">//计算当前的State</span>
+            <span class="n">mState</span> <span class="o">=</span> <span class="n">min</span><span class="o">(</span><span class="n">mState</span><span class="o">,</span> <span class="n">newState</span><span class="o">);</span>
+           <span class="c1">//回调Event mLifecycleObserver.onStateChanged(owner, event);</span>
+           <span class="c1">//将新的State赋值给mState</span>
+            <span class="n">mState</span> <span class="o">=</span> <span class="n">newState</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">LiveData#Observe()</code>方法的大致流程至此。下面跟踪<code class="highlighter-rouge">LiveData#setValue(T)</code>，这个方法要求在主线程中调用，如果想在子线程中更新<code class="highlighter-rouge">LiveData</code>的值，可以调用<code class="highlighter-rouge">LiveData#postValue(T)</code>，下面是<code class="highlighter-rouge">LiveData#setValue(T)</code>的代码：</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>    <span class="nd">@MainThread</span>
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">setValue</span><span class="o">(</span><span class="no">T</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//判断当前线程是否是主线程，不是则会抛出异常</span>
+        <span class="n">assertMainThread</span><span class="o">(</span><span class="s">"setValue"</span><span class="o">);</span>
+        <span class="c1">//这个版本在后文的considerNotify中用于判断是否要回调Observerde#onChagned()</span>
+        <span class="n">mVersion</span><span class="o">++;</span>
+        <span class="c1">//记录此次的数据</span>
+        <span class="n">mData</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+        <span class="n">dispatchingValue</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">dispatchingValue</code></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+</pre></td><td class="rouge-code"><pre> <span class="kd">private</span> <span class="kt">void</span> <span class="nf">dispatchingValue</span><span class="o">(</span><span class="nd">@Nullable</span> <span class="nc">ObserverWrapper</span> <span class="n">initiator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">//前面都是一些变量的控制</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">mDispatchingValue</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">mDispatchInvalidated</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">mDispatchingValue</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="k">do</span> <span class="o">{</span>
+            <span class="n">mDispatchInvalidated</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">initiator</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">considerNotify</span><span class="o">(</span><span class="n">initiator</span><span class="o">);</span>
+                <span class="n">initiator</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="nc">Iterator</span><span class="o">&lt;</span><span class="nc">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="nc">Observer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;,</span> <span class="nc">ObserverWrapper</span><span class="o">&gt;&gt;</span> <span class="n">iterator</span> <span class="o">=</span>
+                        <span class="n">mObservers</span><span class="o">.</span><span class="na">iteratorWithAdditions</span><span class="o">();</span> <span class="n">iterator</span><span class="o">.</span><span class="na">hasNext</span><span class="o">();</span> <span class="o">)</span> <span class="o">{</span>
+<span class="c1">//这里调用considerNotify                    considerNotify(iterator.next().getValue());</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">mDispatchInvalidated</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="k">break</span><span class="o">;</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">mDispatchInvalidated</span><span class="o">);</span>
+        <span class="n">mDispatchingValue</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">considerNofify</code></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="rouge-code"><pre>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">considerNotify</span><span class="o">(</span><span class="nc">ObserverWrapper</span> <span class="n">observer</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">observer</span><span class="o">.</span><span class="na">mActive</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="c1">// Check latest state b4 dispatch. Maybe it changed state but we didn't get the event yet.</span>
+        <span class="c1">//</span>
+        <span class="c1">// we still first check observer.active to keep it as the entrance for events. So even if</span>
+        <span class="c1">// the observer moved to an active state, if we've not received that event, we better not</span>
+        <span class="c1">// notify for a more predictable notification order.</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">observer</span><span class="o">.</span><span class="na">shouldBeActive</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">observer</span><span class="o">.</span><span class="na">activeStateChanged</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">observer</span><span class="o">.</span><span class="na">mLastVersion</span> <span class="o">&gt;=</span> <span class="n">mVersion</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">observer</span><span class="o">.</span><span class="na">mLastVersion</span> <span class="o">=</span> <span class="n">mVersion</span><span class="o">;</span>
+        <span class="c1">//noinspection unchecked</span>
+        <span class="c1">//这里回调了Observer的onChanged()方法</span>
+        <span class="n">observer</span><span class="o">.</span><span class="na">mObserver</span><span class="o">.</span><span class="na">onChanged</span><span class="o">((</span><span class="no">T</span><span class="o">)</span> <span class="n">mData</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="livedata的状态在何时改变">LiveData的状态在何时改变</h2>
+<p>调用状态改变的入口在<code class="highlighter-rouge">LifecycleRegistry#handleLifecycleEvent</code>，这个方法在<code class="highlighter-rouge">supportActvity</code>中有这么一句代码。</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>   <span class="nd">@Override</span>
+    <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">"RestrictedApi"</span><span class="o">)</span>
+    <span class="kd">protected</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="nd">@Nullable</span> <span class="nc">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+        <span class="nc">ReportFragment</span><span class="o">.</span><span class="na">injectIfNeededIn</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><code class="highlighter-rouge">onCreate</code>的时候会调用<code class="highlighter-rouge">ReportFragment.injectIfNeededIn(this);</code></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+</pre></td><td class="rouge-code"><pre><span class="nd">@RestrictTo</span><span class="o">(</span><span class="nc">RestrictTo</span><span class="o">.</span><span class="na">Scope</span><span class="o">.</span><span class="na">LIBRARY_GROUP</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReportFragment</span> <span class="kd">extends</span> <span class="nc">Fragment</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">String</span> <span class="no">REPORT_FRAGMENT_TAG</span> <span class="o">=</span> <span class="s">"android.arch.lifecycle"</span>
+            <span class="o">+</span> <span class="s">".LifecycleDispatcher.report_fragment_tag"</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">injectIfNeededIn</span><span class="o">(</span><span class="nc">Activity</span> <span class="n">activity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// ProcessLifecycleOwner should always correctly work and some activities may not extend</span>
+        <span class="c1">// FragmentActivity from support lib, so we use framework fragments for activities</span>
+        <span class="n">android</span><span class="o">.</span><span class="na">app</span><span class="o">.</span><span class="na">FragmentManager</span> <span class="n">manager</span> <span class="o">=</span> <span class="n">activity</span><span class="o">.</span><span class="na">getFragmentManager</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">manager</span><span class="o">.</span><span class="na">findFragmentByTag</span><span class="o">(</span><span class="no">REPORT_FRAGMENT_TAG</span><span class="o">)</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">manager</span><span class="o">.</span><span class="na">beginTransaction</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="nc">ReportFragment</span><span class="o">(),</span> <span class="no">REPORT_FRAGMENT_TAG</span><span class="o">).</span><span class="na">commit</span><span class="o">();</span>
+            <span class="c1">// Hopefully, we are the first to make a transaction.</span>
+            <span class="n">manager</span><span class="o">.</span><span class="na">executePendingTransactions</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+	
+	<span class="c1">//这里改变LiveData的STATE    </span>
+	<span class="kd">private</span> <span class="kt">void</span> <span class="nf">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">Activity</span> <span class="n">activity</span> <span class="o">=</span> <span class="n">getActivity</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">activity</span> <span class="k">instanceof</span> <span class="nc">LifecycleRegistryOwner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="o">((</span><span class="nc">LifecycleRegistryOwner</span><span class="o">)</span> <span class="n">activity</span><span class="o">).</span><span class="na">getLifecycle</span><span class="o">().</span><span class="na">handleLifecycleEvent</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+            <span class="k">return</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">activity</span> <span class="k">instanceof</span> <span class="nc">LifecycleOwner</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">Lifecycle</span> <span class="n">lifecycle</span> <span class="o">=</span> <span class="o">((</span><span class="nc">LifecycleOwner</span><span class="o">)</span> <span class="n">activity</span><span class="o">).</span><span class="na">getLifecycle</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">lifecycle</span> <span class="k">instanceof</span> <span class="nc">LifecycleRegistry</span><span class="o">)</span> <span class="o">{</span>
+                <span class="o">((</span><span class="nc">LifecycleRegistry</span><span class="o">)</span> <span class="n">lifecycle</span><span class="o">).</span><span class="na">handleLifecycleEvent</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onActivityCreated</span><span class="o">(</span><span class="nc">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onActivityCreated</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+        <span class="n">dispatchCreate</span><span class="o">(</span><span class="n">mProcessListener</span><span class="o">);</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_CREATE</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onStart</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onStart</span><span class="o">();</span>
+        <span class="n">dispatchStart</span><span class="o">(</span><span class="n">mProcessListener</span><span class="o">);</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_START</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onResume</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onResume</span><span class="o">();</span>
+        <span class="n">dispatchResume</span><span class="o">(</span><span class="n">mProcessListener</span><span class="o">);</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_RESUME</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onPause</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onPause</span><span class="o">();</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_PAUSE</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onStop</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onStop</span><span class="o">();</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_STOP</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onDestroy</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">onDestroy</span><span class="o">();</span>
+        <span class="n">dispatch</span><span class="o">(</span><span class="nc">Lifecycle</span><span class="o">.</span><span class="na">Event</span><span class="o">.</span><span class="na">ON_DESTROY</span><span class="o">);</span>
+        <span class="c1">// just want to be sure that we won't leak reference to an activity</span>
+        <span class="n">mProcessListener</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>以上就是<code class="highlighter-rouge">LiveData</code>大致的工作流程。</p>
+
+:ET

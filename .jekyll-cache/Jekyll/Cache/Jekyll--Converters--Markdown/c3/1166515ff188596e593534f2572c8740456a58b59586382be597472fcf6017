@@ -1,0 +1,135 @@
+I"�<blockquote>
+  <p>使用AccessibilityService实现微信自动发送消息。</p>
+</blockquote>
+
+<h1 id="使用accessibilityservice实现微信自动发送消息">使用AccessibilityService实现微信自动发送消息</h1>
+
+<p>最近公司需要一个小工具，能够通过导入<code class="highlighter-rouge">Excel</code>，读取 <code class="highlighter-rouge">Excel</code> 内容精准微信一对一发送消息，本来想过通过微信Web版模拟点击，但是这样限制有点多了，于是想到了 <code class="highlighter-rouge">Android</code> 上的 <a href="https://developer.android.com/reference/android/accessibilityservice/AccessibilityService">AccessibilityService</a> 来实现模拟点击功能。</p>
+
+<h2 id="效果图">效果图</h2>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/AccessibilityService.gif" alt="image" /></p>
+
+<p>导入Excel读取内容之后，发送消息的操作就能全部不需要手动操作了。</p>
+
+<h1 id="开始">开始</h1>
+
+<p>除去文件选择、Excel的读取之外的步骤：</p>
+
+<ul>
+  <li>启动微信</li>
+  <li>监测微信首页的搜索按钮</li>
+  <li>复制内容填充到搜索框并点击</li>
+  <li>选中搜索的联系人</li>
+  <li>找到聊天界面的输入框并填充内容</li>
+  <li>找到发送按钮并点击</li>
+  <li>微信界面返回、搜索界面返回。</li>
+</ul>
+
+<p>介绍<a href="https://developer.android.com/reference/android/accessibilityservice/AccessibilityService">AccessibilityService</a></p>
+
+<p>官方说明</p>
+
+<blockquote>
+  <p>Accessibility services should only be used to assist users with disabilities in using Android devices and apps.</p>
+</blockquote>
+
+<p>大意就是<code class="highlighter-rouge">Accessibility services</code>是用于帮助那些无法正常使用Android设备及APP的残障人士准备的。</p>
+
+<p><code class="highlighter-rouge">AccessibilityService</code>可以在后台接收到系统的操作反馈，比如按钮点击，获取焦点等。</p>
+
+<h2 id="使用">使用</h2>
+
+<p>使用<code class="highlighter-rouge">AccessibilityService</code>只需要三步。</p>
+
+<h3 id="继承系统accessibilityservice">继承系统AccessibilityService</h3>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">WeChatAccessService</span> <span class="o">:</span> <span class="nc">AccessibilityService</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">override</span> <span class="n">fun</span> <span class="nf">onInterrupt</span><span class="o">()</span> <span class="o">{</span>
+        
+    <span class="o">}</span>
+
+    <span class="n">override</span> <span class="n">fun</span> <span class="nf">onAccessibilityEvent</span><span class="o">(</span><span class="nl">event:</span> <span class="nc">AccessibilityEvent</span><span class="o">?)</span> <span class="o">{</span>
+        
+    <span class="o">}</span>
+<span class="o">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="在资源目录res下新建xml文件夹新建accessibility-servicexml文件">在资源目录res下新建xml文件夹，新建accessibility-service.xml文件</h3>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="nt">&lt;accessibility-service</span> <span class="na">xmlns:android=</span><span class="s">"http://schemas.android.com/apk/res/android"</span>
+    <span class="na">android:accessibilityEventTypes=</span><span class="s">"typeNotificationStateChanged|typeWindowStateChanged"</span>
+    <span class="na">android:accessibilityFeedbackType=</span><span class="s">"feedbackGeneric"</span>
+    <span class="na">android:accessibilityFlags=</span><span class="s">"flagDefault"</span>
+    <span class="na">android:canRetrieveWindowContent=</span><span class="s">"true"</span>
+    <span class="na">android:notificationTimeout=</span><span class="s">"100"</span><span class="nt">/&gt;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<ul>
+  <li>accessibilityEventTypes：表示该服务对界面中的哪些变化感兴趣，即哪些事件通知,比如窗口打开，滑动，焦点变化，长按等.具体的值可以在<a href="https://developer.android.com/reference/android/view/accessibility/AccessibilityEvent?hl=en">AccessibilityEvent</a>类中查到。如typeAllMask表示接受所有的事件通知。</li>
+  <li>accessibilityFeedbackType：反馈方式，比如语音播放、震动。</li>
+  <li>accessibilityFlags：辅助服务额外的flag信息，例如 <code class="highlighter-rouge">FLAG_REPORT_VIEW_IDS</code>可以使回调的事件带上view的ID。</li>
+  <li>canRetrieveWindowContent：是否可以获取窗口内容。</li>
+  <li>android:notificationTimeout：两个同样类型的辅助事件接收的最小时间间隔。</li>
+  <li>packageNames：指明了自己的辅助服务关心哪些应用发出的事件，多个应用包名之间用逗号分隔，如果不填，则关注手机上所有应用发出的事件。如果只关注微信发出的事件，则这里填<code class="highlighter-rouge">com.tencent.mm</code>。</li>
+</ul>
+
+<h3 id="注册">注册</h3>
+
+<p>在Manifest中注册</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre> <span class="nt">&lt;service</span>
+        <span class="na">android:name=</span><span class="s">".WeChatAccessService"</span>
+        <span class="na">android:enabled=</span><span class="s">"true"</span>
+        <span class="na">android:exported=</span><span class="s">"true"</span>
+        <span class="na">android:permission=</span><span class="s">"android.permission.BIND_ACCESSIBILITY_SERVICE"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;intent-filter&gt;</span>
+                <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">"android.accessibilityservice.AccessibilityService"</span> <span class="nt">/&gt;</span>
+            <span class="nt">&lt;/intent-filter&gt;</span>
+
+            <span class="nt">&lt;meta-data</span>
+                    <span class="na">android:name=</span><span class="s">"android.accessibilityservice"</span>
+                    <span class="na">android:resource=</span><span class="s">"@xml/access_service_config"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;/service&gt;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>由于这个功能过于开放，所以每次使用都需要用户授权，Google的初衷是好的，但是好像国人发力的方向似乎有点问题。我做这个微信自动发消息干嘛！！</p>
+
+<h2 id="实现微信自动发送消息">实现微信自动发送消息</h2>
+
+<p>由于每次微信更新，对应的view id都会变化，本文以微信7.0.4版本为例，查找view id可以用<code class="highlighter-rouge">Hierarchy Viewer</code>，能看布局id也能看布局层级。</p>
+
+<p>剩下的都是一些具体的代码，没啥好记录的了。</p>
+
+<p><a href="https://github.com/qfxl/WxAutoController">具体代码</a></p>
+:ET

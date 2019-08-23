@@ -1,0 +1,843 @@
+I"M�<p>Dart第五章-Class。</p>
+
+<h1 id="class">Class</h1>
+
+<p>Dart是一个面向对象语言，同时支持基于 mixin 的继承机制。每个对象都是一个实例，所有的类都继承自 <a href="https://api.dartlang.org/stable/dart-core/Object-class.html">Object</a>。
+基于 Mixin 的继承意味着每个类（Object 除外） 都<strong>只有一个父类</strong>，一个类的代码可以在其他 多个类继承中重复使用。</p>
+
+<p>使用 <code class="highlighter-rouge">new</code> 关键字和构造函数来创建新的对象。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">p</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Point</span><span class="o">();</span>
+
+<span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+    
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>每个实例变量都会自动生成一个 <code class="highlighter-rouge">getter</code> 方法（隐含的）。 <code class="highlighter-rouge">Non-final</code> 实例变量还会自动生成一个 <code class="highlighter-rouge">setter</code> 方法。</p>
+
+<h2 id="定义实例变量">定义实例变量</h2>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+    <span class="kt">num</span> <span class="n">a</span><span class="o">;</span><span class="c1">//null</span>
+    <span class="kt">num</span> <span class="n">b</span><span class="o">;</span><span class="c1">//null</span>
+    <span class="kt">num</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">p</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Point</span><span class="o">();</span>
+<span class="n">p</span><span class="o">.</span><span class="na">a</span> <span class="o">=</span> <span class="mi">100</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">a</span> <span class="o">==</span> <span class="mi">100</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>所有没有初始化的变量值都是 <code class="highlighter-rouge">null</code>。</p>
+
+<p>每个实例变量都会自动生成一个 <code class="highlighter-rouge">getter</code> 方法（隐含的）。 <code class="highlighter-rouge">Non-final</code> 实例变量还会自动生成一个 setter 方法，参见下文<code class="highlighter-rouge">Getter&amp;Setter</code>。</p>
+
+<h2 id="构造函数">构造函数</h2>
+
+<p>定义一个和类名字一样的方法就定义了一个构造函数 还可以带有其他可选的标识符。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+  <span class="c1">//不推荐</span>
+  <span class="n">Point</span><span class="o">(</span><span class="kt">num</span> <span class="n">a</span><span class="o">,</span> <span class="kt">num</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">b</span> <span class="o">=</span> <span class="n">b</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>因为这种赋值操作太常见了，所以Dart提供了如下语法糖。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+
+  <span class="n">Point</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">a</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">b</span><span class="o">);</span>
+<span class="o">}</span>  
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="default-constructors默认构造函数">Default constructors（默认构造函数）</h3>
+
+<p>如果你没有定义构造函数，则会有个默认构造函数。 默认构造函数没有参数，并且会调用超类的没有参数的构造函数。</p>
+
+<h3 id="constructors-arent-inherited构造函数不会继承">Constructors aren’t inherited（构造函数不会继承）</h3>
+
+<p>子类不会继承超类的构造函数。子类如果没有定义构造函数，则只有一个默认构造函数 （没有名字没有参数）。</p>
+
+<h3 id="named-constructors命名构造函数">Named constructors（命名构造函数）</h3>
+
+<p>使用命名构造函数可以为一个类实现多个构造函数， 或者使用命名构造函数来更清晰的表明你的意图：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+  
+  <span class="n">Point</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">Map</span> <span class="n">map</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">a</span> <span class="o">=</span> <span class="n">map</span><span class="o">[</span><span class="s">'a'</span><span class="o">];</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">b</span> <span class="o">=</span> <span class="n">map</span><span class="o">[</span><span class="s">'b'</span><span class="o">];</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>注意：构造函数不能继承，所以超类的命名构造函数 也不会被继承。如果希望 子类也有超类一样的命名构造函数，必须在子类中自己实现该构造函数。</strong></p>
+
+<h3 id="invoking-a-non-default-superclass-constructor调用超类构造函数">Invoking a non-default superclass constructor（调用超类构造函数）</h3>
+
+<p>默认情况下，子类的构造函数会自动调用超类的 无名无参数的默认构造函数。</p>
+
+<p>超类的构造函数在子类构造函数体开始执行的位置调用。 如果提供了一个 <code class="highlighter-rouge">initializer list（初始化参数列表）[见下文]</code>，则初始化参数列表在超类构造函数执行之前执行。下面是构造函数执行顺序：</p>
+
+<ul>
+  <li>1，initializer list（初始化参数列表）</li>
+  <li>2，superclass’s no-arg constructor（超类的无名构造函数）</li>
+  <li>3，main class’s no-arg constructor（主类的无名构造函数）</li>
+</ul>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">stu</span> <span class="o">=</span> <span class="n">Student</span><span class="o">.</span><span class="na">fromJson</span><span class="o">({});</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Person</span> <span class="o">{</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="o">;</span>
+
+  <span class="n">Person</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">Map</span> <span class="n">json</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"invoke Person constructor"</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Student</span> <span class="kd">extends</span> <span class="n">Person</span> <span class="o">{</span>
+  <span class="n">Student</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">Map</span> <span class="n">json</span><span class="o">)</span> <span class="o">:</span> <span class="k">super</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">json</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"invoke Student constructor"</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>执行顺序为：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="n">invoke</span> <span class="n">Person</span> <span class="n">constructor</span>
+<span class="n">invoke</span> <span class="n">Student</span> <span class="n">constructor</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>由于超类构造函数的参数在构造函数执行之前执行，所以 参数可以是一个表达式或者 一个方法调用：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Student</span> <span class="kd">extends</span> <span class="n">Person</span> <span class="o">{</span>
+  <span class="c1">// ...</span>
+  <span class="n">Student</span><span class="o">()</span> <span class="o">:</span> <span class="k">super</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">findDefaultData</span><span class="o">());</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>注意： 如果在构造函数的初始化列表中使用 super()，需要把它放到最后。</strong></p>
+
+<h3 id="initializer-list初始化列表">Initializer list（初始化列表）</h3>
+
+<p>在构造函数体执行之前除了可以调用超类构造函数之外，还可以初始化实例参数。 使用逗号分隔初始化表达式。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">square</span><span class="o">;</span>
+  
+  <span class="n">Point</span><span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="n">y</span><span class="o">)</span>
+      <span class="o">:</span> <span class="n">a</span> <span class="o">=</span> <span class="n">x</span><span class="o">,</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">y</span><span class="o">,</span>
+        <span class="n">square</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="o">;</span>
+<span class="o">}</span>   
+
+<span class="kd">var</span> <span class="n">p</span> <span class="o">=</span> <span class="n">Point</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span><span class="mi">10</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">square</span><span class="o">);</span><span class="c1">//100</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="redirecting-constructors重定向构造函数">Redirecting constructors（重定向构造函数）</h3>
+
+<p>有时候一个构造函数会调动类中的其他构造函数。 一个重定向构造函数是没有代码的，在构造函数声明后，使用冒号调用其他构造函数。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">square</span><span class="o">;</span>
+
+  <span class="n">Point</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">a</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">b</span><span class="o">);</span>
+
+  <span class="n">Point</span><span class="o">.</span><span class="na">alongX</span><span class="o">(</span><span class="n">x</span><span class="o">)</span> <span class="o">:</span> <span class="k">this</span><span class="o">(</span><span class="n">x</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+<span class="o">}</span>  
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="constant-constructors常量构造函数">Constant constructors（常量构造函数）</h3>
+
+<p>如果类提供一个状态不变的对象，可以把这些对象 定义为编译时常量。要实现这个功能，需要定义一个 const 构造函数， 并且声明所有类的变量为 final。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">ImmutablePoint</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="kt">num</span> <span class="n">x</span><span class="o">;</span>
+  <span class="kd">final</span> <span class="kt">num</span> <span class="n">y</span><span class="o">;</span>
+  <span class="kd">const</span> <span class="n">ImmutablePoint</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">x</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">y</span><span class="o">);</span>
+  <span class="kd">static</span> <span class="kd">final</span> <span class="n">ImmutablePoint</span> <span class="n">origin</span> <span class="o">=</span>
+      <span class="kd">const</span> <span class="n">ImmutablePoint</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="factory-constructors工厂方法构造函数">Factory constructors（工厂方法构造函数）</h3>
+
+<p>如果一个构造函数并不总是返回一个新的对象，则使用 factory 来定义 这个构造函数。例如，一个工厂构造函数 可能从缓存中获取一个实例并返回，或者 返回一个子类型的实例。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">_logger</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Logger</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Logger</span> <span class="o">{</span>
+  <span class="kt">String</span> <span class="n">name</span><span class="o">;</span>
+
+  <span class="n">Logger</span><span class="o">.</span><span class="na">_internal</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+
+  <span class="kd">static</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span> <span class="n">Logger</span><span class="o">&gt;</span> <span class="n">_cache</span> <span class="o">=</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span> <span class="n">Logger</span><span class="o">&gt;();</span>
+
+  <span class="kd">factory</span> <span class="n">Logger</span><span class="o">(</span><span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">_cache</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">name</span><span class="o">))</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">_cache</span><span class="o">[</span><span class="n">name</span><span class="o">];</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="kd">var</span> <span class="n">logger</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Logger</span><span class="o">.</span><span class="na">_internal</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+      <span class="n">_cache</span><span class="o">[</span><span class="n">name</span><span class="o">]</span> <span class="o">=</span> <span class="n">logger</span><span class="o">;</span>
+      <span class="k">return</span> <span class="n">logger</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="kt">void</span> <span class="n">log</span><span class="o">(</span><span class="kt">String</span> <span class="n">content</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">content</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="getters-and-setters">Getters and setters</h3>
+
+<p>Getters 和 setters 是用来设置和访问对象属性的特殊 函数。每个实例变量都隐含的具有一个 getter， 如果变量不是 final 的则还有一个 setter。 你可以通过实行 getter 和 setter 来创建新的属性， 使用 get 和 set 关键字定义 getter 和 setter：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Rectangle</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">left</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">top</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">width</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">height</span><span class="o">;</span>
+
+  <span class="n">Rectangle</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">left</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">top</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">width</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">height</span><span class="o">);</span>
+
+  <span class="kt">num</span> <span class="kd">get</span> <span class="n">right</span> <span class="o">=&gt;</span> <span class="n">left</span> <span class="o">+</span> <span class="n">width</span><span class="o">;</span>
+
+  <span class="kd">set</span> <span class="n">right</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">left</span> <span class="o">=</span> <span class="n">value</span> <span class="o">-</span> <span class="n">width</span><span class="o">;</span>
+
+  <span class="kt">num</span> <span class="kd">get</span> <span class="n">bottom</span> <span class="o">=&gt;</span> <span class="n">height</span> <span class="o">+</span> <span class="n">top</span><span class="o">;</span>
+
+  <span class="kd">set</span> <span class="n">bottom</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">top</span> <span class="o">=</span> <span class="n">value</span> <span class="o">-</span> <span class="n">height</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>getter 和 setter 的好处是，可以开始使用实例变量，后来可以把实例变量用函数包裹起来，而调用代码的地方不需要修改。</p>
+
+<h2 id="定义函数">定义函数</h2>
+
+<h3 id="instance-methods实例函数">Instance methods（实例函数）</h3>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">square</span><span class="o">;</span>
+
+  <span class="n">Point</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">a</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">b</span><span class="o">);</span>
+
+  <span class="kt">num</span> <span class="n">diffSqrt</span><span class="o">(</span><span class="n">Point</span> <span class="n">other</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">var</span> <span class="n">diffA</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="na">a</span><span class="o">;</span>
+    <span class="kd">var</span> <span class="n">diffB</span> <span class="o">=</span> <span class="n">b</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="na">b</span><span class="o">;</span>
+    <span class="k">return</span> <span class="n">diffA</span> <span class="o">*</span> <span class="n">diffB</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>  
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="abstract-methods抽象函数">Abstract methods（抽象函数）</h3>
+
+<p>实例函数、 getter、和 setter 函数可以为抽象函数， 抽象函数是只定义函数接口但是没有实现的函数，由子类来 实现该函数。如果用分号来替代函数体则这个函数就是抽象函数。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Docoer</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="n">decor</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">MyDecoer</span> <span class="kd">extends</span> <span class="n">Docoer</span> <span class="o">{</span>
+  <span class="nd">@override</span>
+  <span class="kt">void</span> <span class="n">decor</span><span class="o">()</span> <span class="o">{</span>
+    
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="overridable-operators可覆写的操作符">Overridable operators（可覆写的操作符）</h3>
+
+<p>具体可以复写的操作符如下：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">&lt;</th>
+      <th style="text-align: left">+</th>
+      <th style="text-align: left">|</th>
+      <th style="text-align: left">[]</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">&gt;</td>
+      <td style="text-align: left">/</td>
+      <td style="text-align: left">^</td>
+      <td style="text-align: left">[]=</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">&lt;=</td>
+      <td style="text-align: left">~/</td>
+      <td style="text-align: left">&amp;</td>
+      <td style="text-align: left">~</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">&gt;=</td>
+      <td style="text-align: left">*</td>
+      <td style="text-align: left">«</td>
+      <td style="text-align: left">==</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">-</td>
+      <td style="text-align: left">%</td>
+      <td style="text-align: left">»</td>
+      <td style="text-align: left"> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">MyPoint</span> <span class="o">{</span>
+  <span class="kt">num</span> <span class="n">a</span><span class="o">;</span>
+  <span class="kt">num</span> <span class="n">b</span><span class="o">;</span>
+
+  <span class="n">MyPoint</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">a</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">b</span><span class="o">);</span>
+
+  <span class="n">MyPoint</span> <span class="kd">operator</span> <span class="o">+(</span><span class="n">MyPoint</span> <span class="n">point</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">MyPoint</span><span class="o">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">point</span><span class="o">.</span><span class="na">a</span><span class="o">,</span> <span class="n">b</span> <span class="o">+</span> <span class="n">point</span><span class="o">.</span><span class="na">b</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果覆写了 <code class="highlighter-rouge">==</code> ，则还应该覆写对象的 <code class="highlighter-rouge">hashCode getter</code> 函数。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Person</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="kt">String</span> <span class="n">firstName</span><span class="o">,</span> <span class="n">lastName</span><span class="o">;</span>
+
+  <span class="n">Person</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">firstName</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">lastName</span><span class="o">);</span>
+
+  <span class="c1">// Override hashCode using strategy from Effective Java,</span>
+  <span class="c1">// Chapter 11.</span>
+  <span class="kt">int</span> <span class="kd">get</span> <span class="n">hashCode</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">17</span><span class="o">;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="mi">37</span> <span class="o">*</span> <span class="n">result</span> <span class="o">+</span> <span class="n">firstName</span><span class="o">.</span><span class="na">hashCode</span><span class="o">;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="mi">37</span> <span class="o">*</span> <span class="n">result</span> <span class="o">+</span> <span class="n">lastName</span><span class="o">.</span><span class="na">hashCode</span><span class="o">;</span>
+    <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="c1">// You should generally implement operator == if you</span>
+  <span class="c1">// override hashCode.</span>
+  <span class="kt">bool</span> <span class="kd">operator</span> <span class="o">==(</span><span class="n">other</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">other</span> <span class="k">is</span><span class="o">!</span> <span class="n">Person</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="n">Person</span> <span class="n">person</span> <span class="o">=</span> <span class="n">other</span><span class="o">;</span>
+    <span class="k">return</span> <span class="o">(</span><span class="n">person</span><span class="o">.</span><span class="na">firstName</span> <span class="o">==</span> <span class="n">firstName</span> <span class="o">&amp;&amp;</span>
+        <span class="n">person</span><span class="o">.</span><span class="na">lastName</span> <span class="o">==</span> <span class="n">lastName</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">main</span><span class="o">()</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">p1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Person</span><span class="o">(</span><span class="s">'bob'</span><span class="o">,</span> <span class="s">'smith'</span><span class="o">);</span>
+  <span class="kd">var</span> <span class="n">p2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Person</span><span class="o">(</span><span class="s">'bob'</span><span class="o">,</span> <span class="s">'smith'</span><span class="o">);</span>
+  <span class="kd">var</span> <span class="n">p3</span> <span class="o">=</span> <span class="s">'not a person'</span><span class="o">;</span>
+  <span class="k">assert</span><span class="o">(</span><span class="n">p1</span><span class="o">.</span><span class="na">hashCode</span> <span class="o">==</span> <span class="n">p2</span><span class="o">.</span><span class="na">hashCode</span><span class="o">);</span>
+  <span class="k">assert</span><span class="o">(</span><span class="n">p1</span> <span class="o">==</span> <span class="n">p2</span><span class="o">);</span>
+  <span class="k">assert</span><span class="o">(</span><span class="n">p1</span> <span class="o">!=</span> <span class="n">p3</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="abstract-classes抽象类">Abstract classes（抽象类）</h2>
+
+<p>使用 abstract 修饰符定义一个 抽象类—一个不能被实例化的类。 抽象类通常用来定义接口，以及部分实现。如果希望你的抽象类 是可示例化的，则定义一个工厂构造函数。</p>
+
+<p>抽象类通常具有抽象函数。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Docoer</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="n">decor</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">MyDecoer</span> <span class="kd">extends</span> <span class="n">Docoer</span> <span class="o">{</span>
+  <span class="nd">@override</span>
+  <span class="kt">void</span> <span class="n">decor</span><span class="o">()</span> <span class="o">{}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="interfaces接口">Interfaces（接口）</h2>
+
+<p>每个类都隐式的定义了一个包含所有实例成员的接口， 并且这个类实现了这个接口。如果你想 创建类 A 来支持 类 B 的 api，而不想继承 B 的实现， 则类 A 应该实现 B 的接口。
+一个类可以通过 implements 关键字来实现一个或者多个接口， 并实现每个接口定义的 API。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">People</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="n">_name</span><span class="o">;</span>
+
+  <span class="n">People</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">_name</span><span class="o">);</span>
+
+  <span class="kt">String</span> <span class="n">greet</span><span class="o">(</span><span class="n">who</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="s">"hello, </span><span class="si">$who</span><span class="s">, i am </span><span class="si">$_name</span><span class="s">"</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Qfxl</span> <span class="kd">implements</span> <span class="n">People</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="n">_name</span> <span class="o">=</span> <span class="s">""</span><span class="o">;</span><span class="c1">// 这句必须要有</span>
+
+  <span class="nd">@override</span>
+  <span class="kt">String</span> <span class="n">greet</span><span class="o">(</span><span class="n">who</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="s">'Hi </span><span class="si">$who</span><span class="s">. Do you know who I am?'</span><span class="o">;;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="继承">继承</h2>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>
+<span class="kd">class</span> <span class="nc">Human</span> <span class="o">{</span>
+  <span class="kt">void</span> <span class="n">breath</span><span class="o">(){</span>
+
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Man</span> <span class="kd">extends</span> <span class="n">Human</span> <span class="o">{</span>
+  <span class="nd">@override</span>
+  <span class="kt">void</span> <span class="n">breath</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="na">breath</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="枚举">枚举</h2>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kt">enum</span> <span class="n">Color</span> <span class="o">{</span>
+  <span class="n">red</span><span class="o">,</span>
+  <span class="n">green</span><span class="o">,</span>
+  <span class="n">blue</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>枚举类型中的每个值都有一个 <code class="highlighter-rouge">index</code> getter 函数， 该函数返回该值在枚举类型定义中的位置（从 0 开始）。 例如，第一个枚举值的位置为 0， 第二个为 1。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre> <span class="kd">var</span> <span class="n">r</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="na">red</span><span class="o">;</span>
+ <span class="n">print</span><span class="o">(</span><span class="n">r</span><span class="o">.</span><span class="na">index</span><span class="o">);</span> <span class="c1">//0</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>枚举的 <code class="highlighter-rouge">values</code> 常量可以返回 所有的枚举值。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="n">List</span><span class="o">&lt;</span><span class="n">Color</span><span class="o">&gt;</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="na">values</span><span class="o">;</span>
+<span class="n">print</span><span class="o">(</span><span class="n">colors</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="o">[</span><span class="n">Color</span><span class="o">.</span><span class="na">red</span><span class="o">,</span> <span class="n">Color</span><span class="o">.</span><span class="na">green</span><span class="o">,</span> <span class="n">Color</span><span class="o">.</span><span class="na">blue</span><span class="o">]</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以在 switch 语句 中使用枚举。 如果在 <code class="highlighter-rouge">switch (e)</code> 中的 e 的类型为枚举类， 如果没有处理所有该枚举类型的值的话，则会抛出一个警告。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre><span class="kt">enum</span> <span class="n">Color</span> <span class="o">{</span>
+  <span class="n">red</span><span class="o">,</span>
+  <span class="n">green</span><span class="o">,</span>
+  <span class="n">blue</span>
+<span class="o">}</span>
+<span class="c1">// ...</span>
+<span class="n">Color</span> <span class="n">aColor</span> <span class="o">=</span> <span class="n">Color</span><span class="o">.</span><span class="na">blue</span><span class="o">;</span>
+<span class="k">switch</span> <span class="o">(</span><span class="n">aColor</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="n">Color</span><span class="o">.</span><span class="na">red</span><span class="o">:</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">'Red as roses!'</span><span class="o">);</span>
+    <span class="k">break</span><span class="o">;</span>
+  <span class="k">case</span> <span class="n">Color</span><span class="o">.</span><span class="na">green</span><span class="o">:</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">'Green as grass!'</span><span class="o">);</span>
+    <span class="k">break</span><span class="o">;</span>
+  <span class="k">default</span><span class="o">:</span> <span class="c1">// Without this, you see a WARNING.</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">aColor</span><span class="o">);</span>  <span class="c1">// 'Color.blue'</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="拓展类为类添加新功能">拓展类（为类添加新功能）</h2>
+
+<p><code class="highlighter-rouge">Mixins</code> 是一种在多类继承中重用一个类代码的方法。
+使用 <code class="highlighter-rouge">with</code> 关键字后面为一个或者多个 <code class="highlighter-rouge">mixin</code> 名字来使用 <code class="highlighter-rouge">mixin</code>。</p>
+
+<p>定义一个类继承 <code class="highlighter-rouge">Object</code>，该类没有构造函数，不能调用 super ，则该类就是一个 <code class="highlighter-rouge">mixin</code>。例如：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Musical</span> <span class="o">{</span>
+  <span class="kt">bool</span> <span class="n">canPlayPiano</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="kt">bool</span> <span class="n">canCompose</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="kt">bool</span> <span class="n">canConduct</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+
+  <span class="kt">void</span> <span class="n">entertainMe</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">canPlayPiano</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">'Playing piano'</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">canConduct</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">'Waving hands'</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">'Humming to self'</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>拓展类</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">class</span> <span class="nc">Musician</span> <span class="kd">extends</span> <span class="n">Performer</span> <span class="k">with</span> <span class="n">Musical</span> <span class="o">{</span>
+  <span class="c1">// ...</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="静态变量与函数">静态变量与函数</h2>
+
+<h3 id="静态变量">静态变量</h3>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">assert</span><span class="o">(</span><span class="n">Color</span><span class="o">.</span><span class="na">red</span><span class="o">.</span><span class="na">name</span> <span class="o">==</span> <span class="s">"red"</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Color</span> <span class="o">{</span>
+  <span class="kd">static</span> <span class="kd">const</span> <span class="n">red</span> <span class="o">=</span> <span class="kd">const</span> <span class="n">Color</span><span class="o">(</span><span class="s">"red"</span><span class="o">);</span>
+  <span class="kd">final</span> <span class="kt">String</span> <span class="n">name</span><span class="o">;</span>
+
+  <span class="kd">const</span> <span class="n">Color</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>静态变量在第一次使用的时候才被初始化。</strong></p>
+
+<h3 id="静态函数">静态函数</h3>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">Color</span><span class="o">.</span><span class="na">printColor</span><span class="o">();</span><span class="c1">//输出qfxl</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">Color</span> <span class="o">{</span>
+  <span class="kd">static</span> <span class="kd">const</span> <span class="n">red</span> <span class="o">=</span> <span class="kd">const</span> <span class="n">Color</span><span class="o">(</span><span class="s">"red"</span><span class="o">);</span>
+  <span class="kd">final</span> <span class="kt">String</span> <span class="n">name</span><span class="o">;</span>
+
+  <span class="kd">const</span> <span class="n">Color</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+
+  <span class="kd">static</span> <span class="kt">void</span> <span class="n">printColor</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>对于通用的或者经常使用的静态函数，考虑 使用顶级方法而不是静态函数。</strong></p>
+
+<p>静态函数还可以当做编译时常量使用。例如，可以把静态函数当做常量构造函数的参数来使用。</p>
+:ET

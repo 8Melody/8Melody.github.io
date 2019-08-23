@@ -1,0 +1,209 @@
+I"�.<blockquote>
+  <p>本文记录微信小程序实现滑块验证。</p>
+</blockquote>
+
+<h1 id="前言">前言</h1>
+
+<p>最近做小程序的时候有个需求要求用户登录之前需要滑块验证，这个在很多网页上面也有使用防止模拟登录或者限制登录频率。</p>
+
+<p>本文记录实现的思路，基本的思路是使用微信提供的<a href="https://developers.weixin.qq.com/miniprogram/dev/component/movable-area.html">movable-area</a>配合<a href="https://developers.weixin.qq.com/miniprogram/dev/component/movable-view.html">movable-view</a>。</p>
+
+<p>具体的使用方法参考文档。
+实现步骤如下：</p>
+
+<ul>
+  <li>记录滑动的<code class="highlighter-rouge">x</code>并且判断<code class="highlighter-rouge">x</code>是否到达了滑动的边界，如果未到边界则将<code class="highlighter-rouge">x</code>置为0，反之设为边界的<code class="highlighter-rouge">x</code>。</li>
+</ul>
+
+<p>最简单的效果图如下：</p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/wechat_slide_bar.gif" alt="基础demo" /></p>
+
+<p>如果稍加修饰的话，可实现下面的效果：</p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/wechat_login_slide_bar.gif" alt="精修" /></p>
+
+<p>本文以最简单的效果为例。</p>
+
+<h2 id="wxml">wxml</h2>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="nt">&lt;view</span> <span class="na">class=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;movable-area</span> <span class="na">class=</span><span class="s">"move-area"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;movable-view</span> <span class="na">class=</span><span class="s">"move-view"</span> <span class="na">inertia=</span><span class="s">"true"</span> <span class="na">damping=</span><span class="s">"35"</span> <span class="na">x=</span><span class="s">""</span> <span class="na">direction=</span><span class="s">"horizontal"</span> <span class="na">bindchange=</span><span class="s">"onBlockMove"</span> <span class="na">bindtouchend=</span><span class="s">"onBlockMoveEnd"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;/movable-view&gt;</span>
+  <span class="nt">&lt;/movable-area&gt;</span>
+  <span class="nt">&lt;button</span> <span class="na">class=</span><span class="s">"btn"</span> <span class="na">type=</span><span class="s">"primary"</span> <span class="na">bindtap=</span><span class="s">"resetBlock"</span><span class="nt">&gt;</span>重置<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/view&gt;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="wxss">wxss</h2>
+<div class="language-css highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre><span class="nc">.move-area</span><span class="p">{</span>
+  <span class="nl">width</span><span class="p">:</span> <span class="m">100%</span><span class="p">;</span>
+ <span class="nl">height</span><span class="p">:</span> <span class="m">98</span><span class="n">rpx</span><span class="p">;</span>
+  <span class="nl">background-color</span><span class="p">:</span> <span class="m">#e8f0fc</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.move-view</span><span class="p">{</span>
+  <span class="nl">width</span><span class="p">:</span> <span class="m">98</span><span class="n">rpx</span><span class="p">;</span>
+  <span class="nl">height</span><span class="p">:</span> <span class="m">98</span><span class="n">rpx</span><span class="p">;</span>
+  <span class="nl">background-color</span><span class="p">:</span> <span class="m">#1b6fe1</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nc">.btn</span><span class="p">{</span>
+  <span class="nl">width</span><span class="p">:</span> <span class="m">100%</span><span class="p">;</span>
+  <span class="nl">margin-top</span><span class="p">:</span> <span class="m">90</span><span class="n">rpx</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="js">js</h2>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+</pre></td><td class="rouge-code"><pre><span class="nx">Page</span><span class="p">({</span>
+
+  <span class="cm">/**
+   * 页面的初始数据
+   */</span>
+  <span class="na">data</span><span class="p">:</span> <span class="p">{</span>
+    <span class="na">movedX</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="na">blockMovedX</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="na">moveBlockWidth</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="na">moveAreaWidth</span><span class="p">:</span> <span class="mi">0</span>
+  <span class="p">},</span>
+
+  <span class="nx">onBlockMove</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">moveX</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">detail</span><span class="p">.</span><span class="nx">x</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+      <span class="na">movedX</span><span class="p">:</span> <span class="nx">moveX</span>
+    <span class="p">})</span>
+  <span class="p">},</span>
+  <span class="nx">onBlockMoveEnd</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">areaWidth</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">moveAreaWidth</span><span class="p">;</span>
+    <span class="kd">let</span> <span class="nx">blockWidth</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">moveBlockWidth</span><span class="p">;</span>
+    <span class="kd">let</span> <span class="nx">isFinished</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">isFinished</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">areaWidth</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="nx">blockWidth</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="nx">isFinished</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kd">let</span> <span class="nx">maxX</span> <span class="o">=</span> <span class="nx">areaWidth</span> <span class="o">-</span> <span class="nx">blockWidth</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">movedX</span> <span class="o">&lt;</span> <span class="nx">maxX</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+        <span class="na">blockMovedX</span><span class="p">:</span> <span class="mi">0</span>
+      <span class="p">})</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+        <span class="na">blockMovedX</span><span class="p">:</span> <span class="nx">maxX</span>
+      <span class="p">})</span>
+      <span class="nx">wx</span><span class="p">.</span><span class="nx">showToast</span><span class="p">({</span>
+        <span class="na">title</span><span class="p">:</span> <span class="dl">'</span><span class="s1">验证成功</span><span class="dl">'</span><span class="p">,</span>
+        <span class="na">icon</span><span class="p">:</span> <span class="dl">"</span><span class="s2">none</span><span class="dl">"</span>
+      <span class="p">})</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">resetBlock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+      <span class="na">blockMovedX</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="p">})</span>
+  <span class="p">},</span>
+  <span class="cm">/**
+   * 生命周期函数--监听页面加载
+   */</span>
+  <span class="na">onLoad</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">query</span> <span class="o">=</span> <span class="nx">wx</span><span class="p">.</span><span class="nx">createSelectorQuery</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nb">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+    <span class="nx">query</span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="dl">'</span><span class="s1">.move-area</span><span class="dl">'</span><span class="p">).</span><span class="nx">boundingClientRect</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">rect</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nb">self</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+        <span class="na">moveAreaWidth</span><span class="p">:</span> <span class="nx">rect</span><span class="p">.</span><span class="nx">width</span>
+      <span class="p">})</span>
+    <span class="p">}).</span><span class="nx">exec</span><span class="p">();</span>
+    <span class="nx">query</span><span class="p">.</span><span class="nx">select</span><span class="p">(</span><span class="dl">'</span><span class="s1">.move-view</span><span class="dl">'</span><span class="p">).</span><span class="nx">boundingClientRect</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">rect</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nb">self</span><span class="p">.</span><span class="nx">setData</span><span class="p">({</span>
+        <span class="na">moveBlockWidth</span><span class="p">:</span> <span class="nx">rect</span><span class="p">.</span><span class="nx">width</span><span class="p">,</span>
+      <span class="p">})</span>
+    <span class="p">}).</span><span class="nx">exec</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="总结">总结</h2>
+
+<p>实现效果比较简单，如果有特殊需求的话按照微信提供的文档自己进行二次开发比较容易实现。</p>
+:ET

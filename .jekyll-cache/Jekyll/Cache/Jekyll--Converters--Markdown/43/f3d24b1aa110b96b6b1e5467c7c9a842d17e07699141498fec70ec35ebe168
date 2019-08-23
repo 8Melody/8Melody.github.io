@@ -1,0 +1,421 @@
+I"�E<blockquote>
+  <p>本文记录Centos配置Jenkins实现Android自动打包并上传到蒲公英。</p>
+</blockquote>
+
+<h1 id="centos配置jenkins-实现android自动打包并上传到蒲公英">Centos配置Jenkins 实现Android自动打包并上传到蒲公英</h1>
+
+<p>操作系统为macOS，Jenkins安装操作系统为Centos。</p>
+
+<p>大致流程：</p>
+
+<ul>
+  <li>安装sun JDK，并配置环境变量。</li>
+  <li>安装git。</li>
+  <li>安装gradle，并配置环境变量。</li>
+  <li>安装Android SDK，并配置环境变量。</li>
+  <li>安装、配置Jenkins。</li>
+</ul>
+
+<h2 id="卸载openjdkcentos默认安装openjdk">卸载openJDK（centos默认安装openJDK）</h2>
+
+<blockquote>
+  <p>rpm -qa | grep jdk</p>
+</blockquote>
+
+<p>该命令会列出所有的jdk内容</p>
+
+<blockquote>
+  <p>yum remove 具体的jdk</p>
+</blockquote>
+
+<h2 id="centos安装zip-unzip用于后续解压安装包">centos安装zip unzip（用于后续解压安装包）</h2>
+<blockquote>
+  <p>yum install zip unzip</p>
+</blockquote>
+
+<h2 id="centos安装sun-java">centos安装sun java</h2>
+
+<p>通过<code class="highlighter-rouge">wget</code>下载可能会存在无法打开问题，本次使用本地下载，再上传到服务器上的操作。
+因为本次操作使用的系统为<code class="highlighter-rouge">macOS</code>，所以在终端输入</p>
+
+<blockquote>
+  <p>scp 下载的jdk完整路径 root@ip地址:~</p>
+</blockquote>
+
+<p>登录到服务器之后将文件移动到想要移动的位置。
+下一步，解压文件</p>
+<blockquote>
+  <p>tar zxvf jdk文件.tar.gz</p>
+</blockquote>
+
+<h2 id="centos-安装git">centos 安装git</h2>
+<blockquote>
+  <p>yum install git</p>
+</blockquote>
+
+<h2 id="centos-安装gradle并配置环境">centos 安装gradle并配置环境</h2>
+<blockquote>
+  <p>wget https://downloads.gradle.org/distributions/gradle-5.0-all.zip</p>
+</blockquote>
+
+<p>解压gradle，我这里直接放在了最顶层目录</p>
+
+<blockquote>
+  <p>unzip gradle-5.0-all.zip</p>
+</blockquote>
+
+<p>配置环境变量</p>
+
+<blockquote>
+  <p>vim /etc/profile</p>
+</blockquote>
+
+<p>编辑文件，在文件中输入以下内容</p>
+
+<div class="language-vim highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>export GRADLE_HOME<span class="p">=</span>gradle<span class="m">-5</span><span class="p">.</span><span class="m">0</span>
+export PATH<span class="p">=</span>$<span class="p">{</span>GRADLE_HOME<span class="p">}</span>/bin<span class="p">:</span>$<span class="p">{</span>PATH<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>vim命令模式下输入<code class="highlighter-rouge">i</code>进入输入模式，输入以上内容按<code class="highlighter-rouge">esc</code>返回命令模式，在命令模式下输入<code class="highlighter-rouge">:</code>进入底线命令模式，在底线命令模式下输入<code class="highlighter-rouge">w</code>保存文件，之后输入<code class="highlighter-rouge">q</code>退出vim程序。</p>
+
+<p>之后执行</p>
+
+<blockquote>
+  <p>source /etc/profile</p>
+</blockquote>
+
+<p>让配置生效。</p>
+
+<p>检验Gradle是否安装成功</p>
+
+<blockquote>
+  <p>gradle -version</p>
+</blockquote>
+
+<h2 id="centos安装android-sdk并配置环境变量">centos安装Android SDK，并配置环境变量。</h2>
+
+<p>进入<code class="highlighter-rouge">opt</code>目录，创建<code class="highlighter-rouge">androidSDK</code>目录。</p>
+
+<blockquote>
+  <p>cd opt</p>
+</blockquote>
+
+<blockquote>
+  <p>mkdir androidSDK</p>
+</blockquote>
+
+<blockquote>
+  <p>cd androidSDK/</p>
+</blockquote>
+
+<blockquote>
+  <p>wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip</p>
+</blockquote>
+
+<blockquote>
+  <p>unzip sdk-tools-linux-3859397.zip</p>
+</blockquote>
+
+<p>配置环境变量</p>
+<blockquote>
+  <p>vim /etc/profile</p>
+</blockquote>
+
+<div class="language-vim highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>export ANDROID_HOME<span class="p">=</span><span class="sr">/opt/</span>androidSDK/tools
+export PATH<span class="p">=</span>$<span class="p">{</span>ANDROID_HOME<span class="p">}</span>/bin<span class="p">:</span>$<span class="p">{</span>PATH<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>之后执行</p>
+
+<blockquote>
+  <p>source /etc/profile</p>
+</blockquote>
+
+<p>检查当前sdk安装信息</p>
+
+<blockquote>
+  <p>sdkmanager –list</p>
+</blockquote>
+
+<p>安装需要的package</p>
+
+<blockquote>
+  <p>sdkmanager “build-tools;28.0.1”</p>
+</blockquote>
+
+<h2 id="安装jeknins">安装Jeknins</h2>
+
+<blockquote>
+  <p>wget -O /etc/yum.repos.d/jenkins.repo http://jenkins-ci.org/redhat/jenkins.repo</p>
+</blockquote>
+
+<blockquote>
+  <p>rpm –import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key</p>
+</blockquote>
+
+<blockquote>
+  <p>yum install jenkins</p>
+</blockquote>
+
+<p>启动Jeknins</p>
+
+<blockquote>
+  <p>sudo service jenkins start</p>
+</blockquote>
+
+<p>停止Jeknins</p>
+
+<blockquote>
+  <p>sudo service jenkins stop</p>
+</blockquote>
+
+<p>Jenkins的安装目录</p>
+
+<blockquote>
+  <p>/var/lib/jenkins/</p>
+</blockquote>
+
+<p>Jeknins配置文件的目录</p>
+
+<blockquote>
+  <p>/etc/sysconfig/jenkins</p>
+</blockquote>
+
+<h2 id="jenkins配置">Jenkins配置</h2>
+
+<p>安装完Jekins之后，在浏览器输入<code class="highlighter-rouge">http://&lt;服务器ip&gt;:8080/ </code>就能打开Jenkins的欢迎页。
+欢迎页需要输入一个初始密码，这个在安装之后就存在，并且会提示这个密码文件所在的位置，使用centos的<code class="highlighter-rouge">cat</code>命令就可以查看。</p>
+
+<blockquote>
+  <p>cat 初始密码文件位置</p>
+</blockquote>
+
+<p>之后复制这个密码，输入。</p>
+
+<p>下一步安装基本插件跟创建账户，过于简单，不贴图。</p>
+
+<p>进行了以上操作之后，就会进入到Jeknins的主页。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jeknins_Home.jpg" alt="Jenkins_Home" /></p>
+
+<p>下面是进行繁琐的环境配置。</p>
+
+<ul>
+  <li>配置全局Android SDK</li>
+</ul>
+
+<p><strong>系统管理-系统设置</strong></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_SDK.jpg" alt="image" /></p>
+
+<ul>
+  <li>配置全局JDK、Git跟Gradle</li>
+</ul>
+
+<p><strong>系统管理-全局工具配置</strong></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_git_gradle_jdk.png" alt="image" /></p>
+
+<p>配置以上环境之后就可以创建项目，本文以自己github上的某一个项目为例，<a href="https://github.com/qfxl/Architecturekotlin">项目地址</a>。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins1.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins2.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins3.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins4.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins5.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins6.jpg" alt="image" /></p>
+
+<blockquote>
+  <p>clean assemble${flavor}${buildType} –stacktrace –debug</p>
+</blockquote>
+
+<p>保存。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_build1.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_build2.jpg" alt="image" /></p>
+
+<p>顺利的话，apk就会生成，如何查看？</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_dest1.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_dest2.jpg" alt="image" /></p>
+
+<h2 id="将打包的apk自动发布到蒲公英">将打包的apk自动发布到蒲公英。</h2>
+
+<p><a href="https://www.pgyer.com/doc/view/jenkins_plugin">蒲公英官方文档有Jenkins集成发布说明。</a></p>
+
+<p><strong>如何操作？</strong></p>
+
+<p>怎么申请蒲公英，认证，获取key之类的操作不做记录。</p>
+
+<ul>
+  <li>安装upload to pgyer插件</li>
+</ul>
+
+<p><strong>系统管理-插件管理</strong></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_plugin.png" alt="image" /></p>
+
+<p>点击直接安装。</p>
+
+<p>修改项目的配置信息。</p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_pg0.jpg" alt="image" /></p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_pg1.jpg" alt="image" /></p>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_pg2.jpg" alt="image" /></p>
+
+<p>经过上述操作，apk将顺利发布到蒲公英。</p>
+
+<h2 id="jenkins打包自动生成apk的下载二维码">Jenkins打包自动生成apk的下载二维码。</h2>
+
+<p>这个操作需要借助另外一个插件，<code class="highlighter-rouge">description setter</code>。</p>
+
+<p>安装该插件之后，修改工程的配置信息。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_qrcode.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_qrcode2.jpg" alt="image" /></p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"${appBuildURL}"</span><span class="nt">&gt;&lt;img</span> <span class="na">src=</span><span class="s">"${appQRCodeURL}"</span> <span class="na">width=</span><span class="s">"118"</span> <span class="na">height=</span><span class="s">"118"</span><span class="nt">/&gt;&lt;/a&gt;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上述两个参数，上传到蒲公英成功之后会自动写入全局变量。</p>
+
+<p>最后，Jenkins默认的<code class="highlighter-rouge">标记格式器</code> 为 <code class="highlighter-rouge">纯文本</code>不支持html标签，所以需要修改一下。</p>
+
+<p><strong>系统管理-全局安全配置</strong></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_html.jpg" alt="image" /></p>
+
+<p>保存。</p>
+
+<p>再次构建完成的效果图如下：</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_build_success.png" alt="image" /></p>
+
+<h2 id="修改build-name">修改build name</h2>
+
+<p>如果不想构建名称是 <code class="highlighter-rouge">#1 #2</code>这样的话可以选择修改名称。
+借助插件<code class="highlighter-rouge">build-name-setter</code>。
+安装完成之后，在项目配置里如下修改。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_build_name.png" alt="image" /></p>
+
+<p>之后再build就是如下效果：</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/Jenkins_build_rename.png" alt="image" /></p>
+
+<h2 id="可能会遇到的问题汇总">可能会遇到的问题汇总</h2>
+
+<h3 id="阿里云服务器配置完成之后无法通过8080端口打开jenkins">阿里云服务器配置完成之后无法通过8080端口打开Jenkins</h3>
+
+<p>阿里云ecs服务器需要添加安全组规则开放该端口，否则无法通过外网访问，具体操作如下。</p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/aliyun_1.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/aliyun_2.jpg" alt="image" /></p>
+
+<p><img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/aliyun_3.jpg" alt="image" /></p>
+
+<h3 id="jenkins打包异常文件夹没有读写权限">Jenkins打包异常，文件夹没有读写权限。</h3>
+
+<blockquote>
+  <p>chmod 777 -R 你的目录</p>
+</blockquote>
+
+<h3 id="如何修改jenkins默认端口">如何修改Jenkins默认端口</h3>
+<p>Jenkins默认端口为<code class="highlighter-rouge">8080</code>，如果想修改，需要修改的文件位置为：</p>
+<blockquote>
+  <p>/etc/sysconfig/jenkins</p>
+</blockquote>
+
+<p>将<code class="highlighter-rouge">JENKINS_PORT</code>修改为想要的端口即可。</p>
+
+<h3 id="jenkinsmodelinvalidbuildsdir-item_rootdirbuilds-does-not-exist-and-probably-cannot-be-created">jenkins.model.InvalidBuildsDir: ${ITEM_ROOTDIR}/builds does not exist and probably cannot be created</h3>
+
+<p>由于jenkins自动部署会用到shell命令，使用root用户会避免遇到更多的问题（但是实际生产中，更推荐不要使用root用户），上述问题大致就是用户权限问题，简单粗暴的办法就是设置$JENKINS_USER变量为root。
+具体位置在</p>
+<blockquote>
+  <p>etc/sysconfig/jenkins</p>
+</blockquote>
+
+<p>使用<code class="highlighter-rouge">vim</code>修改<code class="highlighter-rouge">jenkins</code>中的<code class="highlighter-rouge">JENKINS_USER</code>变量为<code class="highlighter-rouge">root</code>，默认为<code class="highlighter-rouge">jenkins</code>。</p>
+
+<h3 id="jenkins-dead-but-pid-file-exists">jenkins dead but pid file exists</h3>
+<p>查看报错日志，日志位于：</p>
+<blockquote>
+  <p>var/log/jenkins/jenkins.log</p>
+</blockquote>
+
+<p>一般是文件夹权限问题，或者端口设置有误，端口修改跟目录问题参考上文。</p>
+
+<h2 id="2019-04-29更新">2019-04-29更新</h2>
+
+<p>前天发现上传到蒲公英插件上传失败了，看日志是JSON解析失败，可能是蒲公英接口返回数据格式有了修改。</p>
+
+<p>这里顺便记录一下使用脚本调用蒲公英的上传接口上传。</p>
+
+<h3 id="不使用上传插件上传到蒲公英">不使用上传插件上传到蒲公英</h3>
+
+<p>蒲公英提供了<a href="https://www.pgyer.com/doc/view/jenkins">上传接口</a></p>
+
+<blockquote>
+  <p>curl -F “file=@/tmp/example.apk” -F “uKey=” -F “_api_key=” https://qiniu-storage.pgyer.com/apiv1/app/upload</p>
+</blockquote>
+
+<p>但是一般情况下项目是有自定义参数，以我现在项目为例，在构建的时候buildType会选择debug还是release，甚至对应不同市场也有选项，其次apk名字一般也会根据日期或者参数命名，这里以buildType跟时间一起为例。</p>
+
+<p>我打好包的名称大概如下：</p>
+<blockquote>
+  <p>xxx_v1.1.9_2019-04-26_debug.apk</p>
+</blockquote>
+
+<p>在使用上传脚本的时候需要找到对应的apk。</p>
+
+<p>步骤：
+1，添加动态参数（用于后续apk文件打包及文件查找）
+2，curl 上传</p>
+
+<h4 id="添加动态参数">添加动态参数</h4>
+
+<p>添加动态参数需要在jenkins添加插件<code class="highlighter-rouge">Dynamic Parameter</code>。</p>
+
+<p>添加完成之后
+<img src="http://qfxl.oss-cn-shanghai.aliyuncs.com/images/jenkins-curl.png" alt="image" /></p>
+
+<p><code class="highlighter-rouge">version</code>是写在config.gradle中，使用groovy读取即可。</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="kt">def</span> <span class="n">config</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s2">"/var/lib/jenkins/workspace/xxx/config.gradle"</span><span class="o">)</span>
+<span class="kt">def</span> <span class="n">configLines</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="na">readLines</span><span class="o">()</span>
+ <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">configLines</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">i</span><span class="o">++</span> <span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">configLines</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">contains</span><span class="o">(</span><span class="s2">"versionName"</span><span class="o">))</span> <span class="o">{</span>
+         <span class="kt">def</span> <span class="n">version</span> <span class="o">=</span> <span class="n">configLines</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">replaceAll</span><span class="o">(</span><span class="s2">","</span><span class="o">,</span><span class="s2">""</span><span class="o">).</span><span class="na">tokenize</span><span class="o">(</span><span class="s1">':'</span><span class="o">)[</span><span class="mi">1</span><span class="o">]</span>
+         <span class="k">return</span>  <span class="n">version</span><span class="o">.</span><span class="na">substring</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span><span class="n">version</span><span class="o">.</span><span class="na">length</span><span class="o">()-</span><span class="mi">1</span><span class="o">)</span>
+   <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="curl-上传">curl 上传</h3>
+
+<p><img src="https://qfxl.oss-cn-shanghai.aliyuncs.com/images/jenkins-curl-upload.png" alt="image" /></p>
+:ET

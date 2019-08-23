@@ -1,0 +1,329 @@
+I",c<p>记录Dart学习第二章，方法。</p>
+
+<h1 id="functions方法">Functions（方法）</h1>
+
+<h2 id="概述">概述</h2>
+
+<p><code class="highlighter-rouge">Dart</code>是一个真正的面向对象语言，其方法也是对象，类型为<a href="https://api.dartlang.org/stable/dart-core/Function-class.html">Function</a>。这意味着，<strong>方法可以赋值给变量，也可以当作其他方法的参数。</strong> 也可以把<code class="highlighter-rouge">Dart</code>的实例当作方法来调用，具体参见 <a href="http://dart.goodev.org/guides/language/language-tour#callable-classes">Callable classes</a>。</p>
+
+<p>定义方法：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">bool</span> <span class="nf">isOldMan</span><span class="p">(</span><span class="kt">int</span> <span class="n">age</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">return</span> <span class="n">age</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者（不推荐）：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="n">isOldMan</span><span class="o">(</span><span class="kt">int</span> <span class="n">age</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">return</span> <span class="n">age</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>在Effective Dart中推荐<a href="http://dart.goodev.org/guides/language/effective-dart/design#api-">在公开的api上指定类型</a>。</p>
+
+<p>对于只有一个表达式的方法，可以选择 使用缩写语法来定义：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kt">bool</span> <span class="nf">isOldMan</span><span class="p">(</span><span class="kt">int</span> <span class="n">age</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">age</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这个 <code class="highlighter-rouge">=&gt; expr</code> 语法是 <code class="highlighter-rouge">{ return expr; }</code> 形式的缩写。<code class="highlighter-rouge">=&gt;</code> 形式 有时候也称之为 <code class="highlighter-rouge">胖箭头</code> 语法。</p>
+
+<blockquote>
+  <p><strong>注意：</strong> 在箭头 (=&gt;) 和冒号 (;) 之间只能使用一个 表达式 – 不能使用 语句。 例如：你不能使用 if statement，但是可以 使用条件表达式 <a href="http://dart.goodev.org/guides/language/language-tour#conditional-expressions">conditional expression</a>。</p>
+</blockquote>
+
+<h2 id="方法参数">方法参数</h2>
+
+<p>方法参数有两种</p>
+
+<ul>
+  <li>必须参数</li>
+  <li>可选参数</li>
+</ul>
+
+<h3 id="必须参数">必须参数</h3>
+
+<p>如上面实例。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kt">bool</span> <span class="nf">isOldMan</span><span class="p">(</span><span class="kt">int</span> <span class="n">age</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">age</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">age</code>就是必须参数。</p>
+
+<h3 id="可选参数">可选参数</h3>
+
+<p>可选参数包含</p>
+
+<ul>
+  <li>可选命名参数</li>
+  <li>可选位置参数</li>
+</ul>
+
+<h4 id="可选命名参数">可选命名参数：</h4>
+<p>在定义方法的时候，使用 <code class="highlighter-rouge">{param1, param2, …}</code> 的形式来指定命名参数:</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">config</span><span class="p">(</span><span class="o">{</span><span class="kt">bool</span> <span class="n">showImage</span><span class="o">,</span> <span class="kt">bool</span> <span class="n">loadLocal</span><span class="o">})</span> <span class="o">{</span>
+
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>调用方法的时候，可以使用这种形式 <code class="highlighter-rouge">paramName: value</code> 来指定命名参数的值：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="n">config</span><span class="o">(</span><span class="nl">loadLocal:</span> <span class="kc">true</span><span class="o">,</span> <span class="nl">showImage:</span> <span class="kc">false</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="可选位置参数">可选位置参数</h4>
+
+<p>将方法参数放到<code class="highlighter-rouge">[]</code>中就变成了可选位置参数。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>
+<span class="kt">String</span> <span class="nf">getInfo</span><span class="p">(</span><span class="kt">String</span> <span class="n">name</span><span class="o">,</span><span class="kt">int</span> <span class="n">age</span><span class="o">,[</span><span class="kt">String</span> <span class="n">language</span><span class="o">])</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">info</span> <span class="o">=</span> <span class="s">"name is </span><span class="si">$name</span><span class="s">, age is </span><span class="si">$age</span><span class="s">"</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">language</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+     <span class="n">info</span> <span class="o">=</span> <span class="s">"</span><span class="si">$info</span><span class="s"> say </span><span class="si">$language</span><span class="s">"</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="k">return</span> <span class="n">info</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>调用：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="n">print</span><span class="o">(</span><span class="n">getInfo</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">,</span> <span class="mi">25</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+<blockquote>
+  <p>name is qfxl, age is 25</p>
+</blockquote>
+
+<p>或者：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="n">print</span><span class="o">(</span><span class="n">getInfo</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">,</span> <span class="mi">25</span><span class="o">,</span> <span class="s">"Chinese"</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+<blockquote>
+  <p>name is qfxl, age is 25 say Chinese</p>
+</blockquote>
+
+<h4 id="默认参数值">默认参数值</h4>
+
+<p>在定义<strong>可选参数</strong>方法的时候，可以使用 <code class="highlighter-rouge">=</code> 来定义可选参数的默认值。 默认值只能是编译时常量。 如果没有提供默认值，则默认值为 <code class="highlighter-rouge">null</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">config</span><span class="p">(</span><span class="o">{</span><span class="kt">bool</span> <span class="n">showImage</span><span class="o">=</span> <span class="kc">false</span><span class="o">,</span><span class="kt">bool</span> <span class="n">loadLocal</span><span class="o">=</span> <span class="kc">false</span><span class="o">})</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"showImage: </span><span class="si">$showImage</span><span class="s"> loadLocal:</span><span class="si">$loadLocal</span><span class="s">"</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在调用的时候可以直接：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="n">config</span><span class="o">();</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者选择某个参数调用，也可以补齐所有参数调用。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="n">config</span><span class="o">(</span><span class="nl">loadLocal:</span><span class="kc">true</span><span class="o">);</span>
+<span class="n">config</span><span class="o">(</span><span class="nl">showImage:</span><span class="kc">true</span><span class="o">,</span> <span class="nl">loadLocal:</span><span class="kc">true</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>针对以上例子：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">startConfig</span><span class="p">(</span><span class="kt">String</span> <span class="n">name</span><span class="o">,[</span><span class="kt">int</span> <span class="n">age</span><span class="o">=</span><span class="mi">20</span><span class="o">,</span> <span class="kt">bool</span> <span class="n">loadLocal</span><span class="o">])</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">msg</span> <span class="o">=</span> <span class="s">"</span><span class="si">$name</span><span class="s"> age is </span><span class="si">$age</span><span class="s">"</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">loadLocal</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="s">"</span><span class="si">$msg</span><span class="s"> config loadLocal </span><span class="si">$loadLocal</span><span class="s">"</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="n">print</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>调用：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="n">startConfig</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">);</span>
+<span class="n">startConfig</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">,</span> <span class="mi">100</span><span class="o">);</span>
+<span class="n">startConfig</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">,</span> <span class="mi">100</span><span class="o">,</span> <span class="kc">true</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>还可以使用<code class="highlighter-rouge">list</code>、<code class="highlighter-rouge">map</code>做为默认值。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">printStudents</span><span class="p">(</span>
+    <span class="o">{</span><span class="n">List</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span> <span class="n">names</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[</span><span class="s">"Anna"</span><span class="o">,</span> <span class="s">"Bruce"</span><span class="o">,</span> <span class="s">"Cindy"</span><span class="o">],</span>
+    <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">ages</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">{</span><span class="s">"Anna"</span><span class="o">:</span> <span class="mi">28</span><span class="o">,</span> <span class="s">"Bruce"</span><span class="o">:</span> <span class="mi">25</span><span class="o">,</span> <span class="s">"Cindy"</span><span class="o">:</span> <span class="mi">20</span><span class="o">}})</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="s">"list : </span><span class="si">$names</span><span class="s">"</span><span class="o">);</span>
+  <span class="n">print</span><span class="o">(</span><span class="s">"ages : </span><span class="si">$ages</span><span class="s">"</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="将方法当作另一个函数的参数">将方法当作另一个函数的参数</h3>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="n">invokePrint</span><span class="o">(</span><span class="n">element</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="n">element</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="n">main</span><span class="o">()</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[</span><span class="s">"A"</span><span class="o">,</span> <span class="s">"B"</span><span class="o">,</span> <span class="s">"C"</span><span class="o">];</span>
+  <span class="n">list</span><span class="o">.</span><span class="na">forEach</span><span class="o">(</span><span class="n">invokePrint</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>方法赋值给变量。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="s">"</span><span class="si">${msg.toUpperCase()}</span><span class="s">"</span><span class="o">;</span>
+<span class="n">print</span><span class="o">(</span><span class="n">name</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="匿名方法">匿名方法</h2>
+
+<p>匿名方法又称 <em>lambda</em> 或者 <em>closure闭包</em> ，可以把匿名方法赋值给一个变量， 然后你可以使用这个方法，比如添加到集合或者从集合中删除。
+匿名函数和命名函数看起来类似— 在括号之间可以定义一些参数，参数使用逗号 分割，也可以是可选参数。 后面大括号中的代码为函数体：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="o">([[</span><span class="n">Type</span><span class="o">]</span> <span class="n">param1</span><span class="o">[,</span> <span class="err">…</span><span class="o">]])</span> <span class="o">{</span> 
+  <span class="n">codeBlock</span><span class="o">;</span> 
+<span class="o">};</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[</span><span class="s">"A"</span><span class="o">,</span> <span class="s">"B"</span><span class="o">,</span> <span class="s">"C"</span><span class="o">];</span>
+    <span class="n">list</span><span class="o">.</span><span class="na">forEach</span><span class="o">((</span><span class="n">item</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">item</span><span class="o">);</span>
+<span class="o">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果方法中只有一个语句，则可以使用胖箭头<code class="highlighter-rouge">=&gt;</code>:</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[</span><span class="s">"A"</span><span class="o">,</span> <span class="s">"B"</span><span class="o">,</span> <span class="s">"C"</span><span class="o">];</span>
+<span class="n">list</span><span class="o">.</span><span class="na">forEach</span><span class="o">((</span><span class="n">item</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="o">(</span><span class="n">item</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="静态作用域">静态作用域</h2>
+
+<p><code class="highlighter-rouge">Dart</code>是静态作用域语言，变量的作用域在声明的时候就确定了，作用域规则与<code class="highlighter-rouge">Java</code>类似。</p>
+
+<h2 id="closures闭包">closures（闭包）</h2>
+
+<p>一个<em>闭包</em>是一个<strong>方法对象</strong>，不管该对象在何处被调用，该对象都可以访问其作用域内的变量。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="n">Function</span> <span class="nf">autoIncrement</span><span class="p">(</span><span class="kt">int</span> <span class="n">origin</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">return</span> <span class="o">(</span><span class="kt">int</span> <span class="n">param</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">param</span><span class="o">;</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>调用：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="c1">//创建方法</span>
+<span class="kd">var</span> <span class="n">addMethod</span> <span class="o">=</span> <span class="n">autoIncrement</span><span class="o">(</span><span class="mi">100</span><span class="o">);</span>
+<span class="c1">//调用方法</span>
+<span class="n">print</span><span class="o">(</span><span class="n">addMethod</span><span class="o">(</span><span class="mi">50</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>例子：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="n">Function</span> <span class="nf">compareClosures</span><span class="p">(</span><span class="o">[</span><span class="kt">bool</span> <span class="n">origin</span> <span class="o">=</span> <span class="kc">false</span><span class="o">])</span> <span class="o">{</span>
+  <span class="k">return</span> <span class="o">(</span><span class="kt">bool</span> <span class="n">param</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">origin</span> <span class="o">&amp;&amp;</span> <span class="n">param</span><span class="o">;</span>
+<span class="o">}</span>
+
+
+<span class="kt">String</span> <span class="nf">getMsg</span><span class="p">(</span><span class="kt">String</span> <span class="n">name</span><span class="o">,</span> <span class="o">{</span><span class="kt">int</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="kt">bool</span> <span class="n">isStudent</span><span class="o">})</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">msg</span> <span class="o">=</span> <span class="s">"</span><span class="si">$name</span><span class="s"> </span><span class="si">$age</span><span class="s"> years old"</span><span class="o">;</span>
+  <span class="k">return</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">isStudent</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">isStudent</span> <span class="o">?</span> <span class="s">"</span><span class="si">$msg</span><span class="s"> , is a student."</span> <span class="o">:</span> <span class="s">"</span><span class="si">$msg</span><span class="s"> , is not a student."</span><span class="o">;</span>
+<span class="o">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>调用：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="n">getMsg</span><span class="o">(</span><span class="s">"qfxl"</span><span class="o">,</span><span class="nl">age:</span> <span class="mi">30</span><span class="o">,</span><span class="nl">isStudent:</span> <span class="n">compareClosures</span><span class="o">()(</span><span class="kc">true</span><span class="o">)));</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+<blockquote>
+  <p>qfxl 30 years old , is not a student.</p>
+</blockquote>
+
+:ET

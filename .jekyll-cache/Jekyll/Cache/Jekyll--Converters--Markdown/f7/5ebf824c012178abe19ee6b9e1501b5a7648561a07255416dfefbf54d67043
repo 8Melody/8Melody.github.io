@@ -1,0 +1,420 @@
+I"qp<blockquote>
+  <p>记录Dart第四章-流程控制。</p>
+</blockquote>
+
+<h1 id="流程控制">流程控制</h1>
+
+<blockquote>
+  <p>本文记录<code class="highlighter-rouge">Dart</code>流程控制及异常处理。</p>
+</blockquote>
+
+<ul>
+  <li><code class="highlighter-rouge">if</code> and <code class="highlighter-rouge">else</code></li>
+  <li><code class="highlighter-rouge">for</code> loops</li>
+  <li><code class="highlighter-rouge">while</code> and <code class="highlighter-rouge">do while</code> loops</li>
+  <li><code class="highlighter-rouge">break</code> and <code class="highlighter-rouge">continue</code></li>
+  <li><code class="highlighter-rouge">switch</code> and <code class="highlighter-rouge">case</code></li>
+  <li><code class="highlighter-rouge">assert</code></li>
+</ul>
+
+<h2 id="if-and-else">if and else</h2>
+
+<p>与大部分通用语言一致</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testIfElse</span><span class="p">(</span><span class="kt">int</span> <span class="n">age</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">msg</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">age</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">age</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">"青少年"</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">age</span> <span class="o">&gt;</span> <span class="mi">20</span> <span class="o">&amp;&amp;</span> <span class="n">age</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">"中老年"</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">"仙人"</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="n">print</span><span class="o">(</span><span class="n">msg</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="for-loops">for loops</h2>
+
+<p>与大部分通用语言一致</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testForLoops</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">const</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span><span class="s">"b"</span><span class="o">,</span><span class="s">"c"</span><span class="o">];</span>
+  <span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">list</span><span class="o">[</span><span class="n">i</span><span class="o">]);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Dart</code>中的<code class="highlighter-rouge">for</code>循环中的闭包会捕获循环的<code class="highlighter-rouge">index</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testElsLoops</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[];</span>
+  <span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(()</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="o">(</span><span class="n">i</span><span class="o">));</span>
+  <span class="o">}</span>
+  <span class="n">list</span><span class="o">.</span><span class="na">forEach</span><span class="o">((</span><span class="n">c</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">c</span><span class="o">());</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果要遍历的对象实现了<code class="highlighter-rouge">Iterable</code> 接口，则可以使用 <a href="https://api.dartlang.org/stable/dart-core/Iterable/forEach.html">forEach()</a> 方法。如果没必要当前遍历的索引，则使用<a href="https://api.dartlang.org/stable/dart-core/Iterable/forEach.html">forEach()</a>更加简洁：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+
+<span class="n">list</span><span class="o">.</span><span class="na">forEach</span><span class="o">((</span><span class="n">s</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="o">(</span><span class="n">s</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">List</code> 和 <code class="highlighter-rouge">Set</code> 等实现了 <code class="highlighter-rouge">Iterable</code> 接口的类还支持 <code class="highlighter-rouge">for-in</code> 形式的遍历：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">item</span> <span class="k">in</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">item</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="while-and--dowhile">while and  do…while</h2>
+
+<p>与其他通用语言一致。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testWhile</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+
+    <span class="kd">var</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+
+    <span class="k">while</span> <span class="o">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">print</span><span class="o">(</span><span class="n">list</span><span class="o">[</span><span class="n">index</span><span class="o">]);</span>
+        <span class="n">index</span><span class="o">++;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testDoWhile</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+
+  <span class="kd">var</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+  <span class="k">do</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">list</span><span class="o">[</span><span class="n">index</span><span class="o">]);</span>
+    <span class="n">index</span><span class="o">++;</span>
+  <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">index</span> <span class="o">&lt;</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">);</span>
+<span class="o">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="break-and-continue">break and continue</h2>
+
+<p><code class="highlighter-rouge">break</code></p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testBreak</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">const</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+  <span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">list</span><span class="o">[</span><span class="n">i</span><span class="o">]);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">continue</code></p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">testContinue</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">const</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">];</span>
+  <span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">continue</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="n">print</span><span class="o">(</span><span class="n">list</span><span class="o">[</span><span class="n">i</span><span class="o">]);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="n">list</span><span class="o">.</span><span class="na">where</span><span class="o">((</span><span class="n">c</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">c</span> <span class="o">!=</span> <span class="s">"b"</span><span class="o">).</span><span class="na">forEach</span><span class="o">((</span><span class="n">c</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="o">(</span><span class="n">c</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="switch-case">switch case</h2>
+
+<p><code class="highlighter-rouge">Dart</code>中的<code class="highlighter-rouge">Switch</code>语句使用<code class="highlighter-rouge">==</code>比较<code class="highlighter-rouge">integer</code>、<code class="highlighter-rouge">string</code>或者编译时常量，比较的对象必须时同一个类的实例，<code class="highlighter-rouge">class</code>必须没有覆盖<code class="highlighter-rouge">==</code>操作符。</p>
+
+<p>每个非空的<code class="highlighter-rouge">case</code>语句必须有一个<code class="highlighter-rouge">break</code>语句，另外可以通过<code class="highlighter-rouge">continue</code>、<code class="highlighter-rouge">throw</code>或者<code class="highlighter-rouge">return</code>来结束非空<code class="highlighter-rouge">case</code>语句，当没有<code class="highlighter-rouge">case</code>语句匹配的时候，可以使用<code class="highlighter-rouge">default</code>语句来匹配这种情况。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre> <span class="kd">var</span> <span class="n">CMD</span> <span class="o">=</span> <span class="s">"OPEN"</span><span class="o">;</span>
+  <span class="k">switch</span> <span class="o">(</span><span class="n">CMD</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">"CLOSED"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"closed"</span><span class="o">);</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="k">case</span> <span class="s">"OPEN"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"open"</span><span class="o">);</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="k">case</span> <span class="s">"PENDING"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"pending"</span><span class="o">);</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"default"</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>也可以通过<code class="highlighter-rouge">continue</code>跳转到指定的label处执行：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre> <span class="kd">var</span> <span class="n">CMD</span> <span class="o">=</span> <span class="s">"OPEN"</span><span class="o">;</span>
+  <span class="k">switch</span> <span class="o">(</span><span class="n">CMD</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">"CLOSED"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"closed"</span><span class="o">);</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="k">case</span> <span class="s">"OPEN"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"open"</span><span class="o">);</span>
+      <span class="k">continue</span> <span class="n">pending</span><span class="o">;</span>
+    <span class="nl">pending:</span>
+    <span class="k">case</span> <span class="s">"PENDING"</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"pending"</span><span class="o">);</span>
+      <span class="k">break</span><span class="o">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="n">print</span><span class="o">(</span><span class="s">"default"</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+<blockquote>
+  <p>open
+  pending</p>
+</blockquote>
+
+<h2 id="assert断言">Assert（断言）</h2>
+
+<p>如果条件表达式结果不满足需要，则可以使用 <code class="highlighter-rouge">assert</code> 语句俩打断代码的执行。</p>
+
+<blockquote>
+  <p><strong>注意：</strong> 断言只在检查模式下运行有效，如果在生产模式 运行，则断言不会执行。</p>
+</blockquote>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"qfxl"</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">name</span> <span class="o">==</span> <span class="s">"hello"</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="s">"now you see me!"</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">assert</code> 方法的参数可以为任何返回布尔值的表达式或者方法。 如果返回的值为 true， 断言执行通过，执行结束。 如果返回值为 false， 断言执行失败，会抛出一个异常 <code class="highlighter-rouge">AssertionError</code>。</p>
+
+<h2 id="exceptions">Exceptions</h2>
+
+<p>抛出一个异常</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="k">throw</span> <span class="k">new</span> <span class="nf">FormatException</span><span class="p">(</span><span class="s">"msg is null"</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="k">throw</span> <span class="s">"msg is null"</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="catch">Catch</h2>
+
+<p>可以使用 <code class="highlighter-rouge">on</code> 或者 <code class="highlighter-rouge">catch</code> 来声明捕获语句，也可以 同时使用。使用 <code class="highlighter-rouge">on</code> 来指定异常类型，使用 <code class="highlighter-rouge">catch</code> 来 捕获异常对象。</p>
+
+<p>捕获异常可以避免异常继续传递（重新抛出rethrow异常除外）</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">try</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">FormatException</span><span class="o">(</span><span class="s">"msg is null"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="n">on</span> <span class="n">FormatException</span><span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"catched a FormatException"</span><span class="o">);</span>
+  <span class="o">}</span> 
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>函数 <code class="highlighter-rouge">catch()</code> 可以带有一个或者两个参数， 第一个参数为抛出的异常对象， 第二个为堆栈信息 (一个 <a href="https://api.dartlang.org/stable/2.2.0/dart-core/StackTrace-class.html">StackTrace</a> 对象)。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre> <span class="k">try</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">FormatException</span><span class="o">(</span><span class="s">"msg is null"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="n">on</span> <span class="n">FormatException</span> <span class="k">catch</span><span class="o">(</span><span class="n">e</span><span class="o">,</span><span class="n">s</span><span class="o">){</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"catched a FormatException </span><span class="si">$e</span><span class="s"> </span><span class="si">$s</span><span class="s">"</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="rethrow">rethrow</h3>
+
+<p>使用 <code class="highlighter-rouge">rethrow</code> 可以将异常重新抛出。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="k">try</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">FormatException</span><span class="o">(</span><span class="s">"msg is null"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="n">on</span> <span class="n">FormatException</span><span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"catched a FormatException"</span><span class="o">);</span>
+    <span class="k">rethrow</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="n">catched</span> <span class="n">a</span> <span class="nc">FormatException</span>
+<span class="nc">Unhandled</span> <span class="nl">exception:</span>
+<span class="nl">FormatException:</span> <span class="n">msg</span> <span class="n">is</span> <span class="kc">null</span>
+<span class="n">xxx</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="finally">Finally</h2>
+
+<p>要确保某些代码执行，不管有没有出现异常都需要执行，可以使用 一个     <code class="highlighter-rouge">finally</code> 语句来实现。如果没有 <code class="highlighter-rouge">catch</code> 语句来捕获异常， 则在执行完 <code class="highlighter-rouge">finally</code> 语句后， 异常被抛出了：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="k">try</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">FormatException</span><span class="o">(</span><span class="s">"出错了"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"我执行在抛出异常之前"</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>定义的 <code class="highlighter-rouge">finally</code> 语句在匹配的 <code class="highlighter-rouge">catch</code> 语句之后执行：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre> <span class="k">try</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">FormatException</span><span class="o">(</span><span class="s">"出错了"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="n">on</span> <span class="n">FormatException</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"我捕获了一个FormatException"</span><span class="o">);</span>
+  <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+    <span class="n">print</span><span class="o">(</span><span class="s">"我执行在抛出异常之前"</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="err">我捕获了一个</span><span class="n">FormatException</span>
+<span class="err">我执行在抛出异常之前</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>更多<a href="http://dart.goodev.org/guides/libraries/library-tour#exceptions">Exception</a>。</p>
+:ET

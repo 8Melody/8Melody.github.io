@@ -1,0 +1,26 @@
+I")<blockquote>
+  <p>本文记录如何使用Python自动批量安装apk。</p>
+</blockquote>
+
+<p>利用<code class="highlighter-rouge">Python</code>执行<code class="highlighter-rouge">ADB</code>命令 <code class="highlighter-rouge">adb install xxx</code></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">folder</span> <span class="o">=</span> <span class="s">'C:/users/17267/Desktop/debug/'</span>
+<span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+<span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">file</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="nb">file</span><span class="p">)]</span> <span class="o">==</span> <span class="s">"apk"</span><span class="p">:</span>
+        <span class="n">instructions</span> <span class="o">=</span> <span class="s">'adb install '</span> <span class="o">+</span> <span class="n">folder</span> <span class="o">+</span> <span class="nb">file</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"执行命令"</span><span class="p">,</span> <span class="n">instructions</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">instructions</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+:ET

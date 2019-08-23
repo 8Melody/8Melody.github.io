@@ -1,0 +1,563 @@
+I"_�<blockquote>
+  <p>记录Dart学习第一章，内置类型。</p>
+</blockquote>
+
+<h1 id="hello-world">Hello World</h1>
+
+<p>喜闻乐见的Hello World</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="s">'Hello Dart'</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="变量">变量</h1>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>变量是一个引用。上面名字为<code class="highlighter-rouge">name</code>的变量引用了 一个内容为 “qfxl” 的 String 对象。</p>
+
+<h2 id="默认值">默认值</h2>
+
+<p><strong>在<code class="highlighter-rouge">Dart</code>中所有变量的默认值都为<code class="highlighter-rouge">null</code>，即使是<code class="highlighter-rouge">int</code>其默认值依然是<code class="highlighter-rouge">null</code>。</strong></p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kt">int</span> <span class="n">age</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">age</span> <span class="o">==</span> <span class="kc">null</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="s">'age is null'</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上面程序会输出</p>
+
+<blockquote>
+  <p>age is null</p>
+</blockquote>
+
+<h2 id="可选类型">可选类型</h2>
+
+<p>上面定义的<code class="highlighter-rouge">name</code>为<code class="highlighter-rouge">var</code>，但是其类型是<code class="highlighter-rouge">String</code>，也可以直接使用具体类型声明。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kt">String</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>添加类型可以更加清晰的表达你的意图。 IDE 编译器等工具有可以使用类型来更好的帮助你， 可以提供代码补全、提前发现 bug 等功能。</p>
+
+<p>不过根据<a href="http://dart.goodev.org/guides/language/effective-dart/design#type-annotations">Effective Dart</a>上面推荐，使用<code class="highlighter-rouge">var</code>而不是具体的类型来定义变量。</p>
+
+<h2 id="final和const">Final和const</h2>
+<p>如果不打算修改一个变量，则可以使用<code class="highlighter-rouge">final</code>和<code class="highlighter-rouge">const</code>。
+一个<code class="highlighter-rouge">final</code>变量只能赋值一次；一个<code class="highlighter-rouge">const</code>变量是编译时常量。（<code class="highlighter-rouge">const</code>变量同时也是<code class="highlighter-rouge">final</code>变量）顶级的<code class="highlighter-rouge">final</code>变量或者类中的<code class="highlighter-rouge">final</code>变量在第一次使用的时候初始化。</p>
+
+<blockquote>
+  <p><strong>注意:</strong> 实例变量可以为<code class="highlighter-rouge">final</code>但不能是<code class="highlighter-rouge">const</code>。</p>
+</blockquote>
+
+<p><code class="highlighter-rouge">final</code>变量实例。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">final</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="kd">final</span> <span class="kt">String</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span> <span class="c1">//或者这样声明</span>
+<span class="kd">final</span> <span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span> <span class="c1">//这样会报错，var不能用final修饰。</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">const</code>变量为编译时常量，如果<code class="highlighter-rouge">const</code>定义在类中需要使用<code class="highlighter-rouge">static const</code>，可以直接定义<code class="highlighter-rouge">const</code>的值或者使用其他<code class="highlighter-rouge">const</code>的值来初始化。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">const</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">newName</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+<span class="kd">const</span> <span class="kt">String</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span> <span class="c1">//或者这样声明</span>
+<span class="kd">const</span> <span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span> <span class="c1">//这样会报错，var不能用final修饰。</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">const</code>不仅可以定义常量，也可以创建不变的值，还能定义构造函数为<code class="highlighter-rouge">const</code>类型的类，这种类型构建出来的类是不可变的。任何变量都可以有一个不变的值。</p>
+
+<p><code class="highlighter-rouge">[]</code>代表<code class="highlighter-rouge">list</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="c1">//定义的list为unmodifiable的</span>
+<span class="kd">var</span> <span class="n">list1</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[];</span>
+<span class="kd">const</span> <span class="n">list2</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[];</span>
+<span class="kd">final</span> <span class="n">list3</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[];</span>
+<span class="c1">//这样赋值没问题</span>
+<span class="n">list1</span> <span class="o">=</span> <span class="n">list2</span><span class="o">;</span>
+<span class="c1">//如果修改list则会报错。</span>
+<span class="n">list1</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">'1'</span><span class="o">);</span>
+<span class="n">list2</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">'1'</span><span class="o">);</span>
+<span class="n">list3</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">'3'</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="内置类型">内置类型</h1>
+
+<p><code class="highlighter-rouge">Dart</code>内置类型如下：</p>
+
+<ul>
+  <li>numbers</li>
+  <li>strings</li>
+  <li>booleans</li>
+  <li>Collections</li>
+  <li>runes(用于在字符串中表示Unicode字符)</li>
+  <li>symbols</li>
+</ul>
+
+<h2 id="numbers数值">numbers(数值)</h2>
+
+<p><code class="highlighter-rouge">Dart</code>支持两种数字类型。</p>
+
+<h3 id="int">int</h3>
+
+<p>整数值，取值范围为 <code class="highlighter-rouge">$-2^{53}$</code> 和 <code class="highlighter-rouge">$2^{53}$</code> 之间。</p>
+
+<h3 id="double">double</h3>
+<p>64-bit(双精度)浮点数。</p>
+
+<p><code class="highlighter-rouge">int</code>和<code class="highlighter-rouge">double</code>都是<code class="highlighter-rouge">num</code>的子类，<code class="highlighter-rouge">num</code>类型定义了基本的操作符，如<code class="highlighter-rouge">+</code>、<code class="highlighter-rouge">-</code>、<code class="highlighter-rouge">*</code>、<code class="highlighter-rouge">/</code>，还定义了<code class="highlighter-rouge">abs()</code>、<code class="highlighter-rouge">ceil()</code>和<code class="highlighter-rouge">floor()</code>等函数。位操作符，如<code class="highlighter-rouge">&gt;&gt;</code>定义在<code class="highlighter-rouge">int</code>中。</p>
+
+<p>定义整数的实例：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="kt">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mh">0xFFEEBB</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">31234534534545345</span><span class="o">;</span>
+<span class="kd">final</span> <span class="n">a</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果一个数带小数，则其为<code class="highlighter-rouge">double</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">t</span> <span class="o">=</span> <span class="mf">3.1415</span><span class="o">;</span>
+<span class="kt">double</span> <span class="n">u</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.3333</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">v</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">;</span>
+<span class="kd">final</span> <span class="n">w</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.1</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>下面为字符串跟数字之间的转换</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="c1">//String -&gt; int</span>
+<span class="kd">var</span> <span class="n">one</span> <span class="o">=</span> <span class="kt">int</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="s">'1'</span><span class="o">);</span>
+<span class="c1">//String -&gt; double</span>
+<span class="kd">var</span> <span class="n">two</span> <span class="o">=</span> <span class="kt">double</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="s">'3.14'</span><span class="o">);</span>
+<span class="c1">//int -&gt; String</span>
+<span class="kd">var</span> <span class="n">strOne</span> <span class="o">=</span> <span class="mi">1</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+<span class="c1">//double -&gt; String</span>
+<span class="kd">var</span> <span class="n">strTwo</span> <span class="o">=</span> <span class="mf">3.14159265</span><span class="o">.</span><span class="na">toStringAsFixed</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span><span class="c1">//输出3.14</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>整数类型支持位运算。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">4</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="o">;</span> <span class="c1">//结果为2</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>很多算术表达式 只要其操作数是常量，则表达式结果 也是编译时常量。</strong></p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">const</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="strings字符串">Strings(字符串)</h2>
+
+<p><code class="highlighter-rouge">Dart</code>字符串是<code class="highlighter-rouge">UTF-16</code>编码的字符序列。可以使用单引号或者双引号来定义字符串。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="kt">String</span> <span class="n">firstName</span> <span class="o">=</span> <span class="s">"xu"</span><span class="o">;</span>
+<span class="kd">final</span> <span class="n">lastName</span> <span class="o">=</span> <span class="s">"yh"</span><span class="o">;</span>
+<span class="kd">const</span> <span class="n">EngName</span> <span class="o">=</span> <span class="s">"qfxl"</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以在字符串中使用表达式，方法跟<code class="highlighter-rouge">Kotlin</code>一致<code class="highlighter-rouge">${expression}</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">20</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">7</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">name</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="n">print</span><span class="o">(</span><span class="s">'my name is </span><span class="si">$name</span><span class="s"> age is </span><span class="si">${a + b}</span><span class="s">'</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">==</code> 操作符判断两个对象的内容是否一样。 如果两个字符串包含一样的字符编码序列， 则他们是相等的。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">b</span> <span class="o">=</span> <span class="s">'qfxl'</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>拼接字符串可以使用<code class="highlighter-rouge">+</code>，也可以把多个字符串放一起来实现。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">'hello'</span>
+        <span class="s">"world"</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">b</span> <span class="o">=</span> <span class="s">"hello"</span> <span class="o">+</span> <span class="s">'world'</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以使用3个<code class="highlighter-rouge">''</code>或者<code class="highlighter-rouge">""</code>来创建多行文本，这点跟<code class="highlighter-rouge">Kotlin</code>也一致。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">'''
+        This 
+        is 
+        a 
+        Text
+        '''</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果字符串中包含特殊符，如<code class="highlighter-rouge">\n</code>、<code class="highlighter-rouge">\t</code>等，如果想取消这些转移符的作用，在字符前面加上<code class="highlighter-rouge">r</code>，这点跟<code class="highlighter-rouge">Python</code>类似。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">a</span> <span class="o">=</span> <span class="sx">r"This is \n a text"</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>其他<code class="highlighter-rouge">String</code>的方法还有<code class="highlighter-rouge">contains()</code>、<code class="highlighter-rouge">indexOf()</code>、<code class="highlighter-rouge">startsWith()</code>、<code class="highlighter-rouge">endsWith()</code>、<code class="highlighter-rouge">split()</code>等，<a href="https://api.dartlang.org/stable/2.2.0/dart-core/String-class.html">具体API。</a></p>
+
+<h2 id="booleans">Booleans</h2>
+
+<p>为了代表布尔值，<code class="highlighter-rouge">Dart</code>有一个<code class="highlighter-rouge">bool</code>类型，在<code class="highlighter-rouge">Dart</code>中只有<code class="highlighter-rouge">true</code>对象才是true，其余都为false。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="kt">bool</span> <span class="n">isSuccess</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+<span class="kd">var</span> <span class="n">isFailed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="collections">Collections</h2>
+<p><code class="highlighter-rouge">Dart</code> 提供了一些核心的集合 API，包含 <code class="highlighter-rouge">List</code>, <code class="highlighter-rouge">Set</code>, 和 <code class="highlighter-rouge">Map</code></p>
+
+<h3 id="list">List</h3>
+
+<p>也称<code class="highlighter-rouge">array</code>或者有序集合，是所有编程语言中最常见的集合类型。在<code class="highlighter-rouge">Dart</code>中数组就是<code class="highlighter-rouge">List</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list1</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">];</span>
+<span class="n">List</span> <span class="n">list3</span> <span class="o">=</span> <span class="kd">const</span> <span class="o">[];</span>
+<span class="kd">final</span> <span class="n">list2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">List</span><span class="o">();</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">List</code>下标从0开始，跟其他编程语言的特性类似，尤其类似<code class="highlighter-rouge">js</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">list</span> <span class="o">=</span> <span class="o">[];</span>
+<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"hello"</span><span class="o">);</span>
+<span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"world"</span><span class="o">);</span>
+<span class="kd">var</span> <span class="n">size</span> <span class="o">=</span> <span class="n">list</span><span class="o">.</span><span class="na">length</span><span class="o">;</span>
+<span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+
+<span class="o">}</span>
+<span class="n">list</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="s">"Dart"</span><span class="o">;</span>
+<span class="n">list</span><span class="o">.</span><span class="na">removeLast</span><span class="o">();</span>
+
+<span class="kd">var</span> <span class="n">fruits</span> <span class="o">=</span> <span class="o">[</span><span class="s">'bananas'</span><span class="o">,</span> <span class="s">'apples'</span><span class="o">,</span> <span class="s">'oranges'</span><span class="o">];</span>
+<span class="c1">// Sort a list.</span>
+<span class="n">fruits</span><span class="o">.</span><span class="na">sort</span><span class="o">((</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">a</span><span class="o">.</span><span class="na">compareTo</span><span class="o">(</span><span class="n">b</span><span class="o">));</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">fruits</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">==</span> <span class="s">'apples'</span><span class="o">);</span>
+<span class="n">fruits</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+
+<span class="kd">var</span> <span class="n">fruits</span> <span class="o">=</span> <span class="k">new</span> <span class="n">List</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;();</span>
+
+<span class="n">fruits</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">'apples'</span><span class="o">);</span>
+<span class="kd">var</span> <span class="n">fruit</span> <span class="o">=</span> <span class="n">fruits</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">fruit</span> <span class="k">is</span> <span class="kt">String</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><a href="https://api.dartlang.org/stable/2.2.0/dart-core/List-class.html">List具体API。</a></p>
+
+<h3 id="set">Set</h3>
+<p><code class="highlighter-rouge">Dart</code>中<code class="highlighter-rouge">Set</code>是一个无序的集合，里面不能有重复数据，由于是无序的，所以不能用索引来获取数据。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">names</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">Set</span><span class="o">();</span>
+<span class="n">names</span><span class="o">.</span><span class="na">addAll</span><span class="o">([</span><span class="s">'a'</span><span class="o">,</span><span class="s">'b'</span><span class="o">,</span><span class="s">'c'</span><span class="o">]);</span>
+<span class="n">names</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">'a'</span><span class="o">);</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">names</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="mi">3</span><span class="o">);</span>
+<span class="n">names</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="s">'a'</span><span class="o">);</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">names</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="mi">2</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>判断<code class="highlighter-rouge">Set</code>中是否包含某些元素，方法为<code class="highlighter-rouge">contains()</code>、<code class="highlighter-rouge">containsAll()</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">names</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">Set</span><span class="o">();</span>
+<span class="n">names</span><span class="o">.</span><span class="na">addAll</span><span class="o">([</span><span class="s">'a'</span><span class="o">,</span><span class="s">'b'</span><span class="o">,</span><span class="s">'c'</span><span class="o">]);</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">names</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="s">"a"</span><span class="o">));</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">names</span><span class="o">.</span><span class="na">containsAll</span><span class="o">([</span><span class="s">'a'</span><span class="o">,</span><span class="s">'b'</span><span class="o">]));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>获取两个<code class="highlighter-rouge">Set</code>中的交集，方法为<code class="highlighter-rouge">set.intersection(set)</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">setA</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">Set</span><span class="o">();</span>
+<span class="n">setA</span><span class="o">.</span><span class="na">addAll</span><span class="o">([</span><span class="s">'a'</span><span class="o">,</span><span class="s">'b'</span><span class="o">,</span><span class="s">'c'</span><span class="o">]);</span>
+<span class="kd">var</span> <span class="n">setB</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">Set</span><span class="o">.</span><span class="na">from</span><span class="o">([</span><span class="s">'b'</span><span class="o">,</span><span class="s">'c'</span><span class="o">,</span><span class="s">'d'</span><span class="o">]);</span>
+
+<span class="kd">var</span> <span class="n">intersection</span> <span class="o">=</span> <span class="n">setA</span><span class="o">.</span><span class="na">intersection</span><span class="o">(</span><span class="n">setB</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="n">intersection</span><span class="o">);</span> <span class="c1">// 输出{b,c}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="map">Map</h3>
+
+<p>也称为字典，也是一个无序集合。</p>
+
+<p>定义<code class="highlighter-rouge">Map</code>。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">mapA</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="s">"s1"</span><span class="o">:</span><span class="s">"hello"</span><span class="o">,</span>
+  <span class="s">"s2"</span><span class="o">:</span><span class="s">"world"</span>
+<span class="o">};</span>
+
+<span class="kd">var</span> <span class="n">mapB</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">();</span>
+<span class="n">mapB</span><span class="o">[</span><span class="s">"s1"</span><span class="o">]</span> <span class="o">=</span> <span class="s">"hello"</span><span class="o">;</span>
+<span class="n">mapB</span><span class="o">[</span><span class="s">"s2"</span><span class="o">]</span> <span class="o">=</span> <span class="s">"world"</span><span class="o">;</span>
+  
+<span class="n">Map</span> <span class="n">mapC</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">String</span><span class="o">&gt;();</span>
+<span class="n">mapC</span><span class="o">.</span><span class="na">addAll</span><span class="o">(</span><span class="n">mapB</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Map</code>的增删改。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">mapA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">int</span><span class="o">&gt;();</span>
+<span class="c1">//增</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"a"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"b"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"c"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">3</span><span class="o">;</span>
+<span class="c1">//删</span>
+<span class="n">mapA</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="s">"a"</span><span class="o">);</span>
+<span class="n">mapA</span><span class="o">.</span><span class="na">removeWhere</span><span class="o">((</span><span class="n">key</span><span class="o">,</span><span class="n">value</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="n">key</span> <span class="o">==</span> <span class="s">"b"</span><span class="o">);</span>
+<span class="c1">//改</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"c"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+<span class="n">print</span><span class="o">(</span><span class="n">mapA</span><span class="o">);</span> <span class="c1">//输出{c:0}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>判断<code class="highlighter-rouge">Map</code>是否包含某个key。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">mapA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">int</span><span class="o">&gt;();</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"a"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"b"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"c"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">3</span><span class="o">;</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">mapA</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="s">"a"</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Map</code>的<code class="highlighter-rouge">putIfAbsent()</code>方法来修改<code class="highlighter-rouge">Map</code>的值，但是只有该 key 在 map 中不存在的时候才设置这个值，否则key 的值保持不变。如果key存在，则返回原始key对应的值，如果key不存在则返回表达式的值：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">mapA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">int</span><span class="o">&gt;();</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"a"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+
+<span class="kd">var</span> <span class="n">value1</span> <span class="o">=</span> <span class="n">mapA</span><span class="o">.</span><span class="na">putIfAbsent</span><span class="o">(</span><span class="s">"a"</span><span class="o">,</span> <span class="o">()</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="o">);</span> <span class="c1">//value1 = 1</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">mapA</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="mi">1</span><span class="o">);</span>
+<span class="kd">var</span> <span class="n">value2</span> <span class="o">=</span> <span class="n">mapA</span><span class="o">.</span><span class="na">putIfAbsent</span><span class="o">(</span><span class="s">"b"</span><span class="o">,</span> <span class="o">()</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="o">);</span> <span class="c1">//value2 = 2</span>
+<span class="k">assert</span><span class="o">(</span><span class="n">mapA</span><span class="o">.</span><span class="na">length</span> <span class="o">==</span> <span class="mi">2</span><span class="o">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Map</code>循环。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">mapA</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">int</span><span class="o">&gt;();</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"a"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"b"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+<span class="n">mapA</span><span class="o">[</span><span class="s">"c"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">3</span><span class="o">;</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="n">MapEntry</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">,</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">entry</span> <span class="k">in</span> <span class="n">mapA</span><span class="o">.</span><span class="na">entries</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="s">"</span><span class="si">${entry.key}</span><span class="s"> = </span><span class="si">${entry.value}</span><span class="s">"</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="n">mapA</span><span class="o">.</span><span class="na">forEach</span><span class="o">((</span><span class="n">k</span><span class="o">,</span><span class="n">v</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">print</span><span class="o">(</span><span class="s">"</span><span class="si">$k</span><span class="s"> = </span><span class="si">$v</span><span class="s">"</span><span class="o">);</span>
+<span class="o">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">Map</code>的子类有：</p>
+
+<ul>
+  <li><code class="highlighter-rouge">HashMap</code></li>
+  <li><code class="highlighter-rouge">LinkedHashMap</code></li>
+  <li><code class="highlighter-rouge">MapMixin</code></li>
+  <li><code class="highlighter-rouge">MapView</code></li>
+  <li><code class="highlighter-rouge">HttpSession</code></li>
+</ul>
+
+<p><code class="highlighter-rouge">Map</code>的详细信息<a href="https://api.dartlang.org/stable/2.2.0/dart-core/Map-class.html">参考这里。</a></p>
+
+<h2 id="runes">Runes</h2>
+
+<p>在<code class="highlighter-rouge">Dart</code>中，<code class="highlighter-rouge">runes</code>代表字符串的<code class="highlighter-rouge">UTF-32 code points</code>。
+<code class="highlighter-rouge">Unicode</code>为每一个字符、标点符号、表情符号等都定义了 一个唯一的数值。由于<code class="highlighter-rouge">Dart</code>字符串是<code class="highlighter-rouge">UTF-16 code units</code> 字符序列，所以在字符串中表达<code class="highlighter-rouge">32-bit Unicode</code>值就需要 新的语法了。</p>
+
+<p>通常使用<code class="highlighter-rouge">\uXXXX</code>的方式来表示<code class="highlighter-rouge">Unicode code point</code>， 这里的<code class="highlighter-rouge">XXXX</code>是4个16进制的数。例如，心形符号 (♥) 是 <code class="highlighter-rouge">\u2665</code>。 对于非 4 个数值的情况，把编码值放到大括号中即可。 例如，笑脸 emoji (😆) 是<code class="highlighter-rouge">\u{1f600}</code>。</p>
+
+<p><code class="highlighter-rouge">String</code> 类 有一些属性可以提取<code class="highlighter-rouge">rune</code>信息。<code class="highlighter-rouge">codeUnitAt </code>和<code class="highlighter-rouge">codeUnit</code>属性返回<code class="highlighter-rouge">16-bit code units</code>。使用<code class="highlighter-rouge">runes</code> 属性来获取字符串的<code class="highlighter-rouge">runes</code>信息。</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="n">clapping</span> <span class="o">=</span> <span class="s">'</span><span class="err">\</span><span class="s">u{1f44f}'</span><span class="o">;</span>
+<span class="n">print</span><span class="o">(</span><span class="n">clapping</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="n">clapping</span><span class="o">.</span><span class="na">codeUnits</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="n">clapping</span><span class="o">.</span><span class="na">runes</span><span class="o">.</span><span class="na">toList</span><span class="o">());</span>
+
+<span class="kd">var</span> <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Runes</span><span class="o">(</span>
+      <span class="s">'</span><span class="err">\</span><span class="s">u2665  </span><span class="err">\</span><span class="s">u{1f605}  </span><span class="err">\</span><span class="s">u{1f60e}  </span><span class="err">\</span><span class="s">u{1f47b}  </span><span class="err">\</span><span class="s">u{1f596}  </span><span class="err">\</span><span class="s">u{1f44d}'</span><span class="o">);</span>
+<span class="n">print</span><span class="o">(</span><span class="k">new</span> <span class="kt">String</span><span class="o">.</span><span class="na">fromCharCodes</span><span class="o">(</span><span class="n">input</span><span class="o">));</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p><strong>注意:</strong>  使用 list 操作 runes 的时候请小心。 根据所操作的语种、字符集等， 这种操作方式可能导致你的字符串出问题。 更多信息参考 Stack Overflow 上的一个问题：<a href="http://stackoverflow.com/questions/21521729/how-do-i-reverse-a-string-in-dart">Dart如何反转一个字符串。</a></p>
+</blockquote>
+
+<h2 id="symbols">Symbols</h2>
+
+<p><code class="highlighter-rouge">symbols</code>代表<code class="highlighter-rouge">Dart</code>程序中声明的操作符或者标识符，这个基本很少会用到。该功能对于通过名字来引用标识符的情况 是特别有用，特别是混淆后的代码， 标识符的名字被混淆了，但是<code class="highlighter-rouge">symbol</code>的名字不会改变。</p>
+
+<p>使用 Symbol 字面量来获取标识符的<code class="highlighter-rouge">symbol</code> 对象，也就是在标识符 前面添加一个<code class="highlighter-rouge">#</code>符号：</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre><span class="ss">#hello</span><span class="o">;</span>
+<span class="ss">#world</span><span class="o">;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><code class="highlighter-rouge">symbol</code>字面量定义是编译时常量。</p>
+
+<p><a href="http://dart.goodev.org/guides/libraries/library-tour#dartmirrors---reflection">具体使用。</a></p>
+:ET

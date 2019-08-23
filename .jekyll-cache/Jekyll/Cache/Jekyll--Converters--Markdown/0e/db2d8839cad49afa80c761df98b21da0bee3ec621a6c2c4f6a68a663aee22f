@@ -1,0 +1,358 @@
+I"�<blockquote>
+  <p>记录ES6中Promise的使用。</p>
+</blockquote>
+
+<h1 id="es6的promise对象使用小记">ES6的Promise对象使用小记。</h1>
+
+<p>在使用<a href="https://github.com/axios/axios">axios</a>中，经常看到 <code class="highlighter-rouge">Promise</code> 对象，本文做个小记录。</p>
+
+<p><code class="highlighter-rouge">Promise</code> 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值，本质上，<code class="highlighter-rouge">Promise</code> 是一个绑定了回调的对象，而不是将回调传进函数内部。</p>
+
+<h2 id="语法">语法</h2>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre><span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span> <span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{...}</span> <span class="cm">/* executor */</span>  <span class="p">);</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>参数说明：
+<code class="highlighter-rouge">executor</code> 是带有 <code class="highlighter-rouge">resolve</code> 和 <code class="highlighter-rouge">reject</code> 两个参数的函数 。<code class="highlighter-rouge">Promise</code> 构造函数执行时立即调用 <code class="highlighter-rouge">executor</code> 函数， <code class="highlighter-rouge">resolve</code> 和 <code class="highlighter-rouge">reject</code> 两个函数作为参数传递给 <code class="highlighter-rouge">executor</code>（executor 函数在 <code class="highlighter-rouge">Promise</code> 构造函数返回所建 <code class="highlighter-rouge">promise</code> 实例对象前被调用）。<code class="highlighter-rouge">resolve</code> 和 <code class="highlighter-rouge">reject</code> 函数被调用时，分别将 <code class="highlighter-rouge">promise</code>的状态改为<code class="highlighter-rouge">fulfilled（完成）</code>或 <code class="highlighter-rouge">rejected（失败）</code>。<code class="highlighter-rouge">executor</code> 内部通常会执行一些异步操作，一旦异步操作执行完毕(可能成功/失败)，要么调用 <code class="highlighter-rouge">resolve</code> 函数来将 <code class="highlighter-rouge">promise</code> 状态改成 <code class="highlighter-rouge">fulfilled</code>，要么调用 <code class="highlighter-rouge">reject</code> 函数将 <code class="highlighter-rouge">promise</code> 的状态改为 <code class="highlighter-rouge">rejected</code>。如果在 <code class="highlighter-rouge">executor</code> 函数中抛出一个错误，那么该 <code class="highlighter-rouge">promise</code> 状态为 <code class="highlighter-rouge">rejected</code>。<code class="highlighter-rouge">executor</code> 函数的返回值被忽略。</p>
+
+<h2 id="常规使用方法">常规使用方法</h2>
+
+<p><strong>resolve</strong></p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">pmise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">resolve</span><span class="p">(</span><span class="dl">"</span><span class="s2">delay completed</span><span class="dl">"</span><span class="p">);</span>
+	<span class="p">},</span> <span class="mi">500</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="nx">pmise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">alert</span><span class="p">(</span><span class="nx">msg</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在500ms之后会执行alert(“deley complted”)。</p>
+
+<hr />
+
+<p><strong>reject</strong></p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">pmise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">reject</span><span class="p">(</span><span class="dl">"</span><span class="s2">sorry, error occurred!</span><span class="dl">"</span><span class="p">);</span>
+	<span class="p">},</span> <span class="mi">1000</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">pmise</span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">alert</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<hr />
+
+<p><strong>catch</strong>
+<code class="highlighter-rouge">catch</code> 可以指定 <code class="highlighter-rouge">reject</code> 的回调，它还有另外一个作用：在执行 <code class="highlighter-rouge">resolve</code> 的回调（也就是上面then中的第一个参数）时，如果抛出异常了（代码出错了），那么并不会报错卡死js，而是会进到这个<code class="highlighter-rouge">catch</code>方法中。</p>
+
+<hr />
+
+<p><strong>finally</strong>
+方法返回一个 <code class="highlighter-rouge">Promise</code>，在 <code class="highlighter-rouge">promise</code> 执行结束时，无论结果是 <code class="highlighter-rouge">fulfilled</code> 或者是 <code class="highlighter-rouge">rejected</code>，在执行 <code class="highlighter-rouge">then()</code> 和 <code class="highlighter-rouge">catch()</code> 后，都会执行 <code class="highlighter-rouge">finally</code> 指定的回调函数。这为指定执行完 <code class="highlighter-rouge">promise</code> 后，无论结果是 <code class="highlighter-rouge">fulfilled</code> 还是 <code class="highlighter-rouge">rejected</code> 都需要执行的代码提供了一种方式，避免同样的语句需要在 <code class="highlighter-rouge">then()</code> 和 <code class="highlighter-rouge">catch()</code> 中各写一次的情况。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">pmise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">reject</span><span class="p">(</span><span class="dl">"</span><span class="s2">sorry, error occurred!</span><span class="dl">"</span><span class="p">);</span>
+	<span class="p">},</span> <span class="mi">1000</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="nx">pmise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">xxx</span><span class="p">)</span>
+     <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">xxx</span><span class="p">)</span>
+     <span class="p">.</span><span class="k">finally</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+         <span class="c1">//取消进度条等</span>
+     <span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="描述">描述</h2>
+
+<p><code class="highlighter-rouge">Promise</code> 对象是一个代理对象（代理一个值），被代理的值在 <code class="highlighter-rouge">Promise</code> 对象创建时可能是未知的。它允许你为异步操作的成功和失败分别绑定相应的处理方法（handlers）。 这让异步方法可以像同步方法那样返回值，但并不是立即返回最终执行结果，而是一个能代表未来出现的结果的 <code class="highlighter-rouge">promise</code> 对象。</p>
+
+<p>一个<code class="highlighter-rouge">Promise</code>有几个状态：</p>
+
+<ul>
+  <li>pending：初始状态，既不是成功也不是失败。</li>
+  <li>fulfilled：意味着操作成功。</li>
+  <li>rejected：意味着操作失败。</li>
+</ul>
+
+<p><code class="highlighter-rouge">pending</code> 状态的 <code class="highlighter-rouge">Promise</code> 对象可能会变为 <code class="highlighter-rouge">fulfilled</code> 状态并传递一个值给相应的状态处理方法，也可能变为失败状态（<code class="highlighter-rouge">rejected</code>）并传递失败信息。当其中任一种情况出现时，<code class="highlighter-rouge">Promise</code> 对象的 <code class="highlighter-rouge">then</code> 方法绑定的处理方法（handlers ）就会被调用（<code class="highlighter-rouge">then</code>方法包含两个参数：<code class="highlighter-rouge">onfulfilled</code> 和 <code class="highlighter-rouge">onrejected</code>，它们都是 <code class="highlighter-rouge">Function</code> 类型。当 <code class="highlighter-rouge">Promise</code> 状态为 <code class="highlighter-rouge">fulfilled</code> 时，调用 <code class="highlighter-rouge">then</code> 的 <code class="highlighter-rouge">onfulfilled</code> 方法，当 <code class="highlighter-rouge">Promise</code> 状态为 <code class="highlighter-rouge">rejected</code> 时，调用 <code class="highlighter-rouge">then</code> 的 <code class="highlighter-rouge">onrejected</code> 方法， 所以在异步操作的完成和绑定处理方法之间不存在竞争）。</p>
+
+<h2 id="创建promise">创建Promise</h2>
+
+<p><code class="highlighter-rouge">Promise</code> 对象是由关键字 <code class="highlighter-rouge">new</code> 及其构造函数来创建的。该构造函数会把一个叫做 <code class="highlighter-rouge">“处理器函数”（executor function）</code>的函数作为它的参数。这个“处理器函数”接受两个函数—— <code class="highlighter-rouge">resolve</code> 和 <code class="highlighter-rouge">reject</code> ——作为其参数。当异步任务顺利完成且返回结果值时，会调用 <code class="highlighter-rouge">resolve</code> 函数；而当异步任务失败且返回失败原因（通常是一个错误对象）时，会调用 <code class="highlighter-rouge">reject</code> 函数。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="kd">let</span> <span class="nx">pmise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+	<span class="c1">// ?做一些异步操作，最终会调用下面两者之一:</span>
+	<span class="c1">//</span>
+	<span class="c1">//   resolve(someValue); // fulfilled</span>
+	<span class="c1">// ?或</span>
+	<span class="c1">//   reject("failure reason"); // rejected</span>
+<span class="p">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>结合其他函数使用：</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">simplePromise</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">cost</span> <span class="nx">xhr</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">();</span>
+		<span class="nx">xhr</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="dl">"</span><span class="s2">xxx</span><span class="dl">"</span><span class="p">);</span>
+		<span class="nx">xhr</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">resolve</span><span class="p">(</span><span class="nx">xhr</span><span class="p">.</span><span class="nx">responseText</span><span class="p">);</span>
+		<span class="nx">xhr</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">reject</span><span class="p">(</span><span class="nx">xhr</span><span class="p">.</span><span class="nx">statusText</span><span class="p">);</span>
+		<span class="nx">xhr</span><span class="p">.</span><span class="nx">send</span><span class="p">();</span>
+	<span class="p">})</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="链式调用">链式调用</h2>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+</pre></td><td class="rouge-code"><pre><span class="nx">clickBtn</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">this</span><span class="p">.</span><span class="nx">asyncA</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">obj</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">alert</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+		<span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">asyncB</span><span class="p">();</span>
+	<span class="p">}).</span><span class="nx">then</span><span class="p">(</span><span class="nx">obj</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">alert</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+	<span class="p">}).</span><span class="k">catch</span><span class="p">(</span><span class="nx">reason</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">alert</span><span class="p">(</span><span class="nx">reason</span><span class="p">);</span>
+	<span class="p">})</span>
+<span class="p">},</span>
+<span class="nx">asyncA</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">res</span><span class="p">,</span> <span class="nx">rej</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+			<span class="nx">res</span><span class="p">(</span><span class="dl">"</span><span class="s2">asyncA completed</span><span class="dl">"</span><span class="p">);</span>
+		<span class="p">},</span> <span class="mi">1000</span><span class="p">);</span>
+	<span class="p">});</span>
+<span class="p">},</span>
+<span class="nx">asyncB</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">res</span><span class="p">,</span> <span class="nx">rej</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+		<span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+			<span class="nx">res</span><span class="p">(</span><span class="dl">"</span><span class="s2">asyncB completed</span><span class="dl">"</span><span class="p">);</span>
+		<span class="p">},</span> <span class="mi">1000</span><span class="p">);</span>
+	<span class="p">});</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="promisealliterable">Promise.all(iterable)</h2>
+
+<p>这个方法返回一个新的 <code class="highlighter-rouge">promise</code> 对象，该 <code class="highlighter-rouge">promise</code> 对象在 <code class="highlighter-rouge">iterable</code> 参数对象里所有的 <code class="highlighter-rouge">promise</code> 对象都成功的时候才会触发成功，一旦有任何一个 <code class="highlighter-rouge">iterable</code> 里面的 <code class="highlighter-rouge">promise</code> 对象失败则立即触发该 <code class="highlighter-rouge">promise</code> 对象的失败。这个新的 <code class="highlighter-rouge">promise</code> 对象在触发成功状态以后，会把一个包含 <code class="highlighter-rouge">iterable</code> 里所有 <code class="highlighter-rouge">promise</code> 返回值的数组作为成功回调的返回值，顺序跟 <code class="highlighter-rouge">iterable</code> 的顺序保持一致；如果这个新的 <code class="highlighter-rouge">promise</code> 对象触发了失败状态，它会把 <code class="highlighter-rouge">iterable</code> 里第一个触发失败的 <code class="highlighter-rouge">promise</code> 对象的错误信息作为它的失败错误信息。<a href="https://developer.mozilla.org/zh-CN/docs/Web/javascript/Reference/Global_Objects/Promise/all">Promise.all</a> 方法常被用于处理多个 <code class="highlighter-rouge">promise</code> 对象的状态集合。</p>
+
+<p>此实例在 <code class="highlighter-rouge">iterable</code> 参数内所有的 <code class="highlighter-rouge">promise</code> 都“ <code class="highlighter-rouge">完成（resolved）</code>”或参数中不包含 <code class="highlighter-rouge">promise</code> 时回调完成（<code class="highlighter-rouge">resolve</code>）；如果参数中 <code class="highlighter-rouge">promise</code> 有一个失败（<code class="highlighter-rouge">rejected</code>），此实例回调失败（<code class="highlighter-rouge">reject</code>），失败原因的是第一个失败 <code class="highlighter-rouge">promise</code> 的结果。</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">promise1</span> <span class="o">=</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">promise2</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">promise3</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="dl">'</span><span class="s1">foo</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nb">Promise</span><span class="p">.</span><span class="nx">all</span><span class="p">([</span><span class="nx">promise1</span><span class="p">,</span> <span class="nx">promise2</span><span class="p">,</span> <span class="nx">promise3</span><span class="p">]).</span><span class="nx">then</span><span class="p">(</span><span class="nx">values</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">values</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>输出：</p>
+
+<blockquote>
+  <p>Array [3, 42, “foo”]</p>
+</blockquote>
+
+<h2 id="promiseraceiterable">Promise.race(iterable)</h2>
+
+<p>当 <code class="highlighter-rouge">iterable</code> 参数里的任意一个子 <code class="highlighter-rouge">promise</code> 被成功或失败后，父 <code class="highlighter-rouge">promise</code> 马上也会用子 <code class="highlighter-rouge">promise</code> 的成功返回值或失败详情作为参数调用父 <code class="highlighter-rouge">promise</code> 绑定的相应句柄，并返回该 <code class="highlighter-rouge">promise</code> 对象。</p>
+
+<p>可以理解为一旦迭代器中的某个 <code class="highlighter-rouge">promise</code> 解决或拒绝，返回的  <code class="highlighter-rouge">promise</code> 就会解决或拒绝。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">promise1</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="dl">'</span><span class="s1">one</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">promise2</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="dl">'</span><span class="s1">two</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nb">Promise</span><span class="p">.</span><span class="nx">race</span><span class="p">([</span><span class="nx">promise1</span><span class="p">,</span> <span class="nx">promise2</span><span class="p">]).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+  <span class="c1">// Both resolve, but promise2 is faster</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>上面只会输出：</p>
+
+<blockquote>
+  <p>two</p>
+</blockquote>
+
+<h2 id="promiseresolvevalue">Promise.resolve(value)</h2>
+
+<p>返回一个以给定值解析后的 <code class="highlighter-rouge">Promise</code> 对象。但如果这个值是个 <code class="highlighter-rouge">thenable（即带有then方法）</code>，返回的 <code class="highlighter-rouge">promise</code> 会“跟随”这个 <code class="highlighter-rouge">thenable</code> 的对象，采用它的最终状态（指<code class="highlighter-rouge">resolved</code>/<code class="highlighter-rouge">rejected</code>/<code class="highlighter-rouge">pending</code>/<code class="highlighter-rouge">settled</code>）；如果传入的 <code class="highlighter-rouge">value</code> 本身就是 <code class="highlighter-rouge">promise</code> 对象，则该对象作为 <code class="highlighter-rouge">Promise.resolve</code> 方法的返回值返回；否则以该值为成功状态返回 <code class="highlighter-rouge">promise</code> 对象。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">promise1</span> <span class="o">=</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="mi">123</span><span class="p">);</span>
+
+<span class="nx">promise1</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">value</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="dl">"</span><span class="s2">Success</span><span class="dl">"</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">value</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span> <span class="c1">// "Success"</span>
+<span class="p">},</span> <span class="nx">reason</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="c1">// 不会被调用</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">p</span> <span class="o">=</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]);</span>
+<span class="nx">p</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">v</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span> <span class="c1">// 1</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="resolve另一个promise对象">Resolve另一个promise对象</h3>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">original</span> <span class="o">=</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="dl">'</span><span class="s1">我在第二行</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">cast</span> <span class="o">=</span> <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">original</span><span class="p">);</span>
+<span class="nx">cast</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">'</span><span class="s1">value: </span><span class="dl">'</span> <span class="o">+</span> <span class="nx">value</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">'</span><span class="s1">original === cast ? </span><span class="dl">'</span> <span class="o">+</span> <span class="p">(</span><span class="nx">original</span> <span class="o">===</span> <span class="nx">cast</span><span class="p">));</span>
+
+<span class="cm">/*
+*  打印顺序如下，这里有一个同步异步先后执行的区别
+*  original === cast ? true
+*  value: 我在第二行
+*/</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="promiserejectreason">Promise.reject(reason)</h2>
+
+<p>该方法返回一个带有拒绝原因 <code class="highlighter-rouge">reason</code> 参数的 <code class="highlighter-rouge">Promise</code> 对象。</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="nb">Promise</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="dl">"</span><span class="s2">fail</span><span class="dl">"</span><span class="p">)).</span><span class="nx">then</span><span class="p">(</span><span class="nx">result</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="c1">// 未被调用</span>
+<span class="p">},</span> <span class="nx">error</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">);</span> <span class="c1">// stacktrace</span>
+<span class="p">});</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>详细说明参见<a href="https://developer.mozilla.org/zh-CN/docs/Web/javascript/Reference/Global_Objects/Promise">Promise</a>。</p>
+:ET

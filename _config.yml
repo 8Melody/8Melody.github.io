@@ -2,9 +2,9 @@
 title: XYH Blog
 SEOTitle: 徐永红的博客 | XYH Blog
 header-img: img/home-bg.jpg
-email: huxpro@gmail.com
+email: xuyonghong0822@gmail.com
 description: "虚拟于现实之中。"
-keyword: "徐永红,清风徐来, 博客, 个人网站, 互联网, Android, JavaScript, 前端, 设计"
+keyword: "徐永红,清风徐来, 博客, 个人网站, 互联网, Android, JavaScript, 前端"
 url: "https://xuyonghong.cn"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
 
@@ -58,7 +58,7 @@ kramdown:
 
 
 # Disqus settings
-disqus_username: hux
+disqus_username: https-xuyonghong-cn
 
 # Netease settings
 netease_comment: false
@@ -66,19 +66,19 @@ netease_comment: false
 
 
 # Analytics settings
-# Baidu Analytics 
+# Baidu Analytics:33c2f2622babdcdb746defd56487a063
 # ba_track_id: [your track id]
 
 # Google Analytics
-ga_track_id: 'UA-49627206-1'            # Format: UA-xxxxxx-xx
+ga_track_id: 'UA-146341337-1'            # Format: UA-xxxxxx-xx
 ga_domain: xuyonghong.cn
 
 
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "For the next quantum leap<br>离开世界之前，一切都是过程"
-sidebar-avatar: /img/avatar-hux-ny.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
+sidebar-about-description: "VIRTUAL REALITY<br>现实于虚拟之中。"
+sidebar-avatar: /img/qfxl-avatar.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
 
