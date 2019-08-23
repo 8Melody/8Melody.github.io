@@ -3,8 +3,8 @@ layout: post
 title: "微信小程序滑块验证"
 subtitle: "本文记录微信小程序滑块验证功能"
 author: "XYH"
-header-img: ""
-header-bg-css: "linear-gradient(to right, #24b94a, #38ef7d);"
+header-img: "img/wechat-mina.jpg"
+header-mask: 0.4
 tags:
   - Wechat
 ---
