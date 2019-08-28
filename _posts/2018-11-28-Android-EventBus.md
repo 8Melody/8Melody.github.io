@@ -11,7 +11,7 @@ tags:
 ---
 > 本文记录EventBus源码解析内容，版本为3.1.1，从几个核心方法依次入手，`register`、`post`、`postSticky`、`unregister`。
 
-# EventBUs
+# EventBus
 [EventBus][1]是Android和Java上的一个事件发布、订阅框架。
 
 核心功能：
