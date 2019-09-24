@@ -26,7 +26,8 @@ tags:
 Android6.0实现指纹识别需要用到的核心类为[FingerprintManager](https://developer.android.google.cn/reference/kotlin/android/hardware/fingerprint/FingerprintManager?hl=en)，为了更好的兼容及完善API，Google推荐使用的是[FingerprintManagerCompat](https://developer.android.google.cn/reference/kotlin/androidx/core/hardware/fingerprint/FingerprintManagerCompat?hl=en)。
 
 需要的权限：
-> <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+`<uses-permission android:name="android.permission.USE_FINGERPRINT" />`
 
 ```java
  private val fingerprint by lazy {
@@ -274,7 +275,8 @@ class CipherCreator {
 * BIOMETRIC_ERROR_NO_HARDWARE 硬件不支持
 
 需要的权限为：
-> <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+`<uses-permission android:name="android.permission.USE_BIOMETRIC" />`
 
 
 使用[BiometricPrompt](https://developer.android.google.cn/reference/androidx/biometric/BiometricPrompt?hl=en)来实指纹识别的步骤为：
