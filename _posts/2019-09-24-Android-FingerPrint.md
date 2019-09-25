@@ -12,7 +12,7 @@ tags:
 
 # 前言
 
-在了解这个功能之前需要知道Google在`Android6.0`之后有官方API支持指纹识别，每次讨论这个话题总绕不开国产五彩缤纷的ROM，国产手机在`Android6.0`之前有已经实现了自己的指纹识别功能，具体的适配需要去厂商开发文档去查阅，本文不深入讨论。
+Google在`Android6.0`开始已经有官方API支持指纹识别，每次讨论这个话题总绕不开国产五彩缤纷的ROM，国产部分手机在`Android6.0`之前有已经实现了自己的指纹识别功能，具体的适配需要去查阅厂商开发文档，本文不深入讨论。
 
 想要实现指纹识别在`AndroidM（6.0）～ Android P（9.0）`有 [FingerprintManager](https://developer.android.com/reference/android/hardware/fingerprint/FingerprintManager)，而在`Android P（9.0）之后`，Google推荐使用
 [BiometricPrompt](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt?hl=en)来实现生物识别认证，当然这个生物识别不止是指纹识别，可能会有虹膜、人脸识别等，本文记录`Android6.0～Android9.0`指纹识别以及`Android9.0`以上的指纹识别处理。
