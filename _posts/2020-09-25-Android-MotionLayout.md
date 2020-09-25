@@ -532,7 +532,7 @@ implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
 
 * `motion:motionTarget` 代表操作的视图。
 * `motion:framePosition` 从 1 到 99 之间的整数，当前动画处于哪个节点，0 = start 100 = end。
-* `motion:waveShape` 产生的波形(sin|square|triangle|sawtooth|reverseSawtooth|cos|bounce)
+* `motion:waveShape` 产生的波形(sin、square、triangle、sawtooth、reverseSawtooth、cos、bounce)
 * `motion:wavePeriod` 在该区域循环的次数。
 * `motion:waveOffset` 循环时的偏移量，+代表向下，-代表向上。
 * `motion:transitionPathRotate`
@@ -621,7 +621,7 @@ ___
 
 * `motion:motionTarget` 代表操作的视图。
 * `motion:framePosition` 从 1 到 99 之间的整数，当前动画处于哪个节点，0 = start 100 = end。
-* `motion:waveShape` 产生的波形(sin|square|triangle|sawtooth|reverseSawtooth|cos|bounce)
+* `motion:waveShape` 产生的波形(sin、square、triangle、sawtooth、reverseSawtooth、cos、bounce)
 * `motion:wavePeriod` 每秒循环的次数。
 * `motion:waveOffset` 循环时的偏移量，+代表向下，-代表向上。
 * `motion:transitionPathRotate`
