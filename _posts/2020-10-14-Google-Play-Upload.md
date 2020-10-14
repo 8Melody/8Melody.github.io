@@ -63,7 +63,7 @@ override fun onReceivedSslError(
                 }
 ```
 
-# 违法Google Play隐私政策
+# 违反Google Play隐私政策
 
 ![image](https://qfxl.oss-cn-shanghai.aliyuncs.com/images/google_play_provicy_error.jpg)
 
