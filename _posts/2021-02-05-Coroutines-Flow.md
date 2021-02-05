@@ -12,7 +12,7 @@ tags:
 
 # Flow
 
-最大的好处是能解决挂起函数只能返回一个返回值的问题，Flow支持返回一个"流"，可以理解为可以返回多个异步处理的结果。
+Flow的出现是为了解决挂起函数只能返回一个返回值的问题，Flow支持返回一个"流"，可以理解为可以返回多个异步处理的结果。
 
 # 创建一个Flow
 
@@ -27,7 +27,6 @@ val mFlow = flow {
     }
 ```
 * asFlow
-
 ```kotlin
 @FlowPreview
 public fun <T> (() -> T).asFlow(): Flow<T> = flow {
@@ -128,9 +127,7 @@ public fun LongRange.asFlow(): Flow<Long> = flow {
  val mFlow3 = sequenceOf(1, 2, 3).asFlow()
  //...
 ```
-
 * flowOf
-
 ```kotlin
 
 /**
@@ -165,9 +162,7 @@ val mFlow1 = flowOf(1,2,3)
 val mFlow2 = flowOf(1)
 ```
 # 主要操作符简介：
-
 ## emit、collect
-
 “发射”、“收集”，规律如下：
 ```kotlin
  val f = flow {
@@ -188,7 +183,6 @@ val mFlow2 = flowOf(1)
     //collect 3
     //emit 3
 ```
-
 > 如果flow只有一个元素的时候，可以使用`single()`直接获取这个元素，但是如果flow为空，则会抛出`NoSuchElementException("Flow is empty")`，再或者flow元素不止一个的时候，会抛出`IllegalArgumentException("Flow has more than one element")`
 
 源码：
@@ -222,11 +216,8 @@ val f = flowOf(1, 2, 3)
     }
     //3
 ```
-
 ## transform（转换）
-
 源码：
-
 ```kotlin
 public inline fun <T, R> Flow<T>.transform(
     @BuilderInference crossinline transform: suspend FlowCollector<R>.(value: T) -> Unit
@@ -237,9 +228,7 @@ public inline fun <T, R> Flow<T>.transform(
     }
 }
 ```
-
 例：
-
 ```kotlin
  val f = flow {
         (1..3).forEach {
@@ -265,19 +254,15 @@ public inline fun <T, R> Flow<T>.transform(
     //collect transform-3
     //collect ok
 ```
-
 ## filter（过滤）
 内部实现是`transform`，根据`filter`的表达式过滤，并生成一个新的`flow`。
-
 源码：
 ```kotlin
 public inline fun <T> Flow<T>.filter(crossinline predicate: suspend (T) -> Boolean): Flow<T> = transform { value ->
     if (predicate(value)) return@transform emit(value)
 }
 ```
-
 例：
-
 ```kotlin
 val f = flow {
         (1..3).forEach {
@@ -299,19 +284,16 @@ val f = flow {
     //emit 3
 ```
 还有与之对应的`filterNot`、`filterIsInstance`、`filterNotNull`。
-
 ## map（转换）
 实现内部是`transform`，与`transform`不同的是`map`的参数不需要返回一个`FlowCollector`，只是干预`emit`发出来的值。
-    
+ 
 源码：
 ```kotlin
 public inline fun <T, R> Flow<T>.map(crossinline transform: suspend (value: T) -> R): Flow<R> = transform { value ->
    return@transform emit(transform(value))
 }
 ```
-
 例：
-
 ```kotlin
 val f = flow {
         (1..3).forEach {
@@ -334,7 +316,6 @@ val f = flow {
     //collect transform-3
 ```
 此外还有`mapNotNull`。
-
 ## take
 从开始位置到需要`take`数量的为止，返回一个新的`flow`当collect到`take`数量之后，原始的`flow`会被取消。
 
@@ -367,9 +348,7 @@ private suspend fun <T> FlowCollector<T>.emitAbort(value: T) {
     throw AbortFlowException(this)
 }
 ```
-
 例：
-
 ```kotlin
  val f = (1..3).asFlow()
     runBlocking {
@@ -381,7 +360,6 @@ private suspend fun <T> FlowCollector<T>.emitAbort(value: T) {
     //collect 1
 ```
 此外还有`takeWhile`。
-
 ## drop 
 顾名思义，从`drop`的的位置开始，返回一个新的`flow`。
 
@@ -416,9 +394,7 @@ public fun <T> Flow<T>.drop(count: Int): Flow<T> {
     //collect 3
 ```
 此外还有`dropWhile`。
-
 ## reduce
-
 根据操作符累计值。
 
 源码：
@@ -440,9 +416,7 @@ public suspend fun <S, T : S> Flow<T>.reduce(operation: suspend (accumulator: S,
     return accumulator as S
 }
 ```
-
 例：
-
 ```kotlin
 runBlocking {
         val result = flowOf(1, 2, 3)
@@ -456,7 +430,6 @@ runBlocking {
     //accumulator 3，value 3
     //result = 6
 ```
-
 ```kotlin
  runBlocking {
         val result = flowOf(1, 2, 3)
@@ -482,7 +455,6 @@ public suspend inline fun <T, R> Flow<T>.fold(
     return accumulator
 }
 ```
-
 例：
 ```kotlin
 runBlocking {
@@ -499,7 +471,6 @@ runBlocking {
     //result = 16
 ```
 ## buffer
-
 先运行完emit的代码，再进行collect。
 
 不使用`buffer`的情况：
@@ -517,7 +488,6 @@ val f = flowOf("A", "B", "C")
     //each 1C
     //collect 2C
 ```
-
 使用buffer操作的结果：
 
 ```kotlin
@@ -537,7 +507,6 @@ val f = flowOf("A", "B", "C")
 
 ## conflate
 将`flow`任务混合，并将`collect`运行在一个单独的协程中，这样`emit`不会因为`collect`执行慢而挂起等待，`collect`会一直拿到最新的`emit`值。
-
 ```kotlin
 val f = flow {
         for (i in 1..3) {
@@ -563,7 +532,6 @@ val f = flow {
     //time is 792
 ```
 ## collectLatest
-
 ```kotlin
   val f = flow {
         for (i in 1..3) {
@@ -593,7 +561,6 @@ val f = flow {
     
 ```
 ## zip
-
 根据`transform`表达式“压缩”另一个`flow`，并返回一个新的`flow`，“压缩”过程中`flow`会以最先完成的`flow`为结束依据，剩下的没有完成的`flow`会被取消。
 
 ```kotlin
@@ -607,11 +574,8 @@ val f = flow {
     //2B
     //3C
 ```
-
 ## combine 
 与`zip`不同的是`combine`会将两个`flow`都执行完，并且会根据最新`emit`的值组合。
-
-
 ```kotlin
 val flow = flowOf(1, 2).onEach { delay(10) }
     val flow2 = flowOf("A", "B", "C").onEach { delay(15) }
@@ -624,17 +588,14 @@ val flow = flowOf(1, 2).onEach { delay(10) }
     //2B
     //2C
 ```
-
 ## oneach
 在返回新`flow`之前，先执行`onEach`表达式。
-
 ```kotlin
 public fun <T> Flow<T>.onEach(action: suspend (T) -> Unit): Flow<T> = transform { value ->
     action(value)
     return@transform emit(value)
 }
 ```
-
 如：
 ```kotlin
  val intFlow = flowOf(1, 2, 3)
@@ -649,7 +610,6 @@ public fun <T> Flow<T>.onEach(action: suspend (T) -> Unit): Flow<T> = transform 
 ```
 其中`collect()`会触发`flow`的`collect`方法，但是会忽略`emit`的内容，其实就是`collect{}`的缩略写法。
 `collect()`一般会跟`onEach`、`onCompletion`、`catch`操作符一起出现。
-
 ## flowOn
 正常情况下`flow`的`emit`跟`collect`会在同一个协程中执行，知道基本的协程切换的话，可能会想通过`withContext`来将`flow`的`emit`和
 `collect`放在不同协程中执行，但是这是错误的，实现`flow`的协程切换要通过`flowOn`。
@@ -669,7 +629,7 @@ val intFlow = flow {
 ```
 以上代码会抛出异常
 > java.lang.IllegalStateException: Flow invariant is violated:
-
+> 
 正确使用方式：
 
 没有使用`flowOn`：
@@ -704,7 +664,6 @@ val intFlow = flow {
     //collect thread main @coroutine#1
     //collect 1
 ```
-
 完整的解释：
 ```kotlin
 withContext(Dispatchers.Main) {
@@ -722,13 +681,9 @@ flow.map { ... } // Will be executed in IO
     .flowOn(Dispatchers.IO) // This one takes precedence
     .flowOn(Dispatchers.Default)
 ```
-
 **注意`SharedFlow`的子类本身没有执行的`context`，所以`flowOn`对其无效。**
-
 # Exceptions
-
 ## try catch
-
 ```kotlin
   val f = flow {
         for (i in 1..3) {
@@ -755,7 +710,6 @@ flow.map { ... } // Will be executed in IO
     //collect 2
     //异常 java.lang.IllegalStateException: crashed on 2
 ```
-
 ```kotlin
  val f = flow {
         for (i in 1..3) {
@@ -783,9 +737,7 @@ flow.map { ... } // Will be executed in IO
     //emit 2
     //异常 java.lang.IllegalStateException: crashed on 2
 ```
-
 ## catch
-
 ```kotlin
 val f = flow {
         for (i in 1..3) {
@@ -810,9 +762,7 @@ val f = flow {
     //emit 2
     //collect 不小心捕获了个异常 java.lang.IllegalStateException: crashed on 2
 ```
-
 collect发生异常无法捕获到
-
 ```kotlin
  val f = flow {
         for (i in 1..3) {
@@ -836,9 +786,7 @@ collect发生异常无法捕获到
     //collect 2
     //Exception in thread "main" java.lang.IllegalStateException: crashed on 2
 ```
-
 兼并上述两种方法
-
 ```kotlin
   val f = flow {
         for (i in 1..3) {
@@ -861,12 +809,8 @@ collect发生异常无法捕获到
     //emit 2
     //不小心捕获了个异常 java.lang.IllegalStateException: crashed on 2
 ```
-
-
 # completion
-
 ## finally
-
 ```kotlin
   val f = flowOf(1, 2, 3)
   runBlocking {
@@ -883,11 +827,8 @@ collect发生异常无法捕获到
     //collect 3
     //complete
 ```
-
 ## onCompletion
-
 **onCompletion接收一个 Throwable 的nullable参数，可以用这个判断Flow是正常结束还是发生了异常。**
-
 ```kotlin
  val f = flowOf(1, 2, 3)
  runBlocking {
@@ -920,9 +861,7 @@ collect发生异常无法捕获到
     //Flow completed exceptionally
     //Caught exception java.lang.RuntimeException
 ```
-
 **不同于`catch`，`onCompletion `接收所有异常，如果接收得参数为null则代表Flow正常结束。**
-
 ```kotlin
  val f = flowOf(1, 2, 3)
     runBlocking {
