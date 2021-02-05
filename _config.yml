@@ -3,7 +3,7 @@ title: XYH Blog
 SEOTitle: 徐永红的博客 | XYH Blog
 header-img: img/home-bg.jpg
 email: xuyonghong0822@gmail.com
-description: "一板一眼就会滋生弱点。"
+description: "一板一眼就会滋生弱点"
 keyword: "徐永红,清风徐来, 博客, 个人网站, 互联网, Android, JavaScript, 前端"
 url: "https://xuyonghong.cn"              # your host, for absolute URL
 baseurl: ""                             # for example, '/blog' if your blog hosted on 'host/blog'
@@ -77,7 +77,7 @@ ga_domain: xuyonghong.cn
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "VIRTUAL REALITY<br>现实于虚拟之中。"
+sidebar-about-description: "VIRTUAL REALITY<br>再努把力"
 sidebar-avatar: /img/qfxl-avatar.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
