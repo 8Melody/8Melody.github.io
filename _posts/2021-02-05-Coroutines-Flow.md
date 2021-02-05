@@ -17,7 +17,6 @@ Flow的出现是为了解决挂起函数只能返回一个返回值的问题，F
 # 创建一个Flow
 
 创建flow的方式在`Builders.kt`中，主要有以下：
-
 * 最基本的创建方式：
 ```kotlin
 val mFlow = flow {
@@ -27,6 +26,7 @@ val mFlow = flow {
     }
 ```
 * asFlow
+
 ```kotlin
 @FlowPreview
 public fun <T> (() -> T).asFlow(): Flow<T> = flow {
@@ -121,6 +121,7 @@ public fun LongRange.asFlow(): Flow<Long> = flow {
 }
 ```
 如：
+
 ```kotlin
  val mFlow1 = (1..3).asFlow()
  val mFlow2 = arrayOf(1, 2, 3).asFlow()
@@ -128,6 +129,7 @@ public fun LongRange.asFlow(): Flow<Long> = flow {
  //...
 ```
 * flowOf
+
 ```kotlin
 
 /**
@@ -157,11 +159,30 @@ public fun <T> flowOf(value: T): Flow<T> = flow {
 }
 ```
 如：
+
 ```kotlin
 val mFlow1 = flowOf(1,2,3)
 val mFlow2 = flowOf(1)
 ```
 # 主要操作符简介：
+* emit
+* collect
+* transform
+* filter
+* map
+* take
+* drop
+* reduce
+* buffer
+* conflate
+* collectLatest
+* zip
+* combine
+* oneach
+* flowOn
+* catch
+* completion
+
 ## emit、collect
 “发射”、“收集”，规律如下：
 ```kotlin
