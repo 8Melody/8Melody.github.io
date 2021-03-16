@@ -95,7 +95,7 @@ class V220ToV5Adapter extends V220 implements V5 {
 
 # 对象适配器模式
 
-适配器容纳一个它包裹的类的实例,在这种情况下，适配器调用被包裹对象的实例。
+适配器容纳一个它包裹的类的实例，在这种情况下，适配器调用被包裹对象的实例。
 
 UML图：
 ![image](https://qfxl.oss-cn-shanghai.aliyuncs.com/images/ObjectAdapter.png)
