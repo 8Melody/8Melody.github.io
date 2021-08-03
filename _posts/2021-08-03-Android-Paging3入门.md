@@ -26,9 +26,9 @@ Paging的内部实现有一套非常合理的分页架构，我们按照提供�
 
 ```java
 implementation "androidx.paging:paging-runtime:3.0.0"
-implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-implementation 'androidx.fragment:fragment-ktx:1.2.1'
+implementation "com.squareup.retrofit2:retrofit:2.9.0"
+implementation "com.squareup.retrofit2:converter-gson:2.9.0"
+implementation "androidx.fragment:fragment-ktx:1.2.1"
 ```
 
 本次Demo采用Retrofit作为网络请求库，此外`fragment-ktx`是为了使用拓展函数。
