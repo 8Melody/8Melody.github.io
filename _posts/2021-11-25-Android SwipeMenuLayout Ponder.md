@@ -34,7 +34,7 @@ tags:
 初始化一个ViewDragHelper代码如下：
 
 ```java
-val mViewDragHelper = ViewDragHelper.create(this, 1.0f, ViewDragHelper.Callback)
+val mViewDragHelper = ViewDragHelper.create(context, 1.0f, ViewDragHelper.Callback)
 ```
 触摸回调在ViewDragHelper.Callback里：
 
@@ -74,7 +74,7 @@ val mViewDragHelper = ViewDragHelper.create(this, 1.0f, ViewDragHelper.Callback)
     return 0
 }
 ```
-该方法会限制被拖动View水平方向运动坐标，其中left参数代表被拖动View的left坐标。比如限制最大left只能是300，则直接return 300即可，那该View最大只能滑动到left=300的位置。
+该方法会限制被拖动View水平方向运动坐标，其中left参数代表被拖动View的left坐标。比如限制最大left只能是300，则直接return min(left, 300)即可，那该View最大只能滑动到left=300的位置，当超过300的时候会被“修正”为300。
 
 --- 
 
