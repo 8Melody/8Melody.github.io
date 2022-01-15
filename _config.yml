@@ -77,7 +77,7 @@ ga_domain: xuyonghong.cn
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "VIRTUAL REALITY<br>再努把力"
+sidebar-about-description: "你在凝视深渊的时候，深渊也正在凝视着你。"
 sidebar-avatar: /img/qfxl-avatar.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
