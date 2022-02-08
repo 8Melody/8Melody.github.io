@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Binder小记？"
+title: "Binder小记"
 subtitle: "Binder的个人理解小记"
 author: "XYH"
 header-img: ""
