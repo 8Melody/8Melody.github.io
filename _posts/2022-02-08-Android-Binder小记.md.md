@@ -406,7 +406,6 @@ A：AIDL中方法默认支持以下参数类型：
 * String
 * CharSequence
 * List - **List 中的所有元素必须是以上列表中支持的数据类型，或者您所声明的由 AIDL 生成的其他接口或 Parcelable 类型。您可选择将 List 用作“泛型”类（例如，List<String>）。尽管生成的方法旨在使用 List 接口，但另一方实际接收的具体类始终是 ArrayList。**
-
 * Map - **Map 中的所有元素必须是以上列表中支持的数据类型，或者您所声明的由 AIDL 生成的其他接口或 Parcelable 类型。不支持泛型 Map（如 Map<String,Integer> 形式的 Map）。尽管生成的方法旨在使用 Map 接口，但另一方实际接收的具体类始终是 HashMap。**
 
 如果要传递自定义的参数需要实现[Parcelable](https://developer.android.com/reference/android/os/Parcelable)接口。
