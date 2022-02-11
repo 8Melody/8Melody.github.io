@@ -118,7 +118,7 @@ public final void main() {
 
 不同于`inline`，**`noinline`不是作用于函数，而是作用于函数的参数。**对于添加了`noinline`的lambda参数不会参与函数的内联。
 
-比如，在inline修饰的函数中，如果想要使用lambda参数的话，需要加上noinline，不然编译器会报错。
+比如，在inline修饰的函数中，如果想要使用lambda参数作为对象处理的话，需要加上noinline，不然编译器会报错。
 
 错误示范：
 
@@ -142,7 +142,7 @@ inline fun inlined(noinline block: () -> Unit):() -> Unit {
 
 **作用：加强局部内联优化。**
 
-`crossinline`也是**作用于函数的参数**。使用场景为，对于在内联函数种，lambda参数需要在内联函数中被间接调用的情况。
+`crossinline`也是**作用于函数的参数**。使用场景为，对于在内联函数中，lambda参数需要在内联函数中被间接调用的情况。
 
 错误示范：
 
