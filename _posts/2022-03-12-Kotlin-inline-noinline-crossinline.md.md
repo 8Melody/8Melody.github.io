@@ -168,8 +168,8 @@ inline fun crossInlined(crossinline block: () -> Unit) {
 
 # 总结
 
-* inline 可以使用内联（即函数内容直插到调用处）的方式编译函数。
-* noinline 用来局部地、指向性地关闭内联优化。如果不使用noinline修饰lambda参数，则该lambda参数无法当作对象使用。
-* crossinline 当需要在内联函数中，间接调用lambda参数的时候，需要使用crossinline，但是不能在调用处的lambda表达式中使用return。
+* `inline` 可以使用内联（即函数内容直插到调用处）的方式编译函数。
+* `noinline` 用来局部地、指向性地关闭内联优化。如果不使用`noinline`修饰`lambda`参数，则该`lambda`参数无法当作对象使用。
+* `crossinline` 当需要在内联函数中，间接调用lambda参数的时候，需要使用`crossinline`，但是不能在调用处的lambda表达式中使用`return`。
 
-`inline`使用建议：如果函数使用了对象类型的参数（如常见的lambda），建议给函数加上`inline`但是如果对于包的体积很敏感，则建议在频繁调用的场景下再使用`inline`。
+`inline`使用建议：如果函数使用了对象类型的参数（如常见的`lambda`），建议给函数加上`inline`但是如果对于包的体积很敏感，则建议在频繁调用的场景下再使用`inline`。
