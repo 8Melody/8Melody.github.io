@@ -75,6 +75,11 @@ tags:
 ## 创建同时切换分支
 > git checkout -b bug-fix
 
+## 强制修改分支位置
+> git branch -f "当前分支名" "需要切换的位置（分支or commit id）"
+
+
+
 在当前分支上创建分支`bug-fix`，并且换到`bug-fix`
 
 ## 查询所有tag
@@ -116,9 +121,12 @@ tags:
 
 
 ## 版本回退
+
+> git reset (回退)
+
 > git reset --hard 
 
-会回退到最近一次的提交（HEAD）
+**会回退到上一次的提交（HEAD），只针对本地仓库。提交记录会回退到上一次的提交记录。**
 
 如果想回退到指定的提交的话需要指定提交需要先查到提交的id
 
@@ -133,6 +141,24 @@ tags:
 
 > git push origin xxx -f
 
+> git revert（返做）
+
+**相对于`git reset`，`git revert` 可以实现撤销更改，并生成一个新的提交记录，这个提交记录的内容就HEAD最近一次提交之前的内容，这个时候可以推送到remote。**
+
+比如`local`跟remote提交记录为`c1-c2-c3`，这个时候想要修改`c2`提交的内容。
+
+> git revert -n c2
+
+此时的内容依然会保留c3的修改，但是可能会遇到冲突，解决冲突之后。
+
+> git add 文件名
+> git commit -m 'revert c2'
+> git push origin xxx
+
+此时提交记录会变成`c1-c2-c3-c4`，`c4`的内容包含所有`c3`的修改，同时也会有针对`c2`此次的更改内容。
+
+
+
 ## 重新设置远程仓库
 
 > git remote rm origin
@@ -140,5 +166,4 @@ tags:
 添加新的远程仓库
 
 > git remote add origin xxx.git
-
 
